@@ -1,4 +1,3 @@
-codex/create-simulated-linux-terminal-in-frontend-8g67cb
 const FILE_SYSTEM = {
   type: "dir",
   children: {
@@ -17,7 +16,7 @@ const FILE_SYSTEM = {
               children: {
                 "candidates.log": {
                   type: "file",
-                  content: "Candidates screened: 72\\nQualified this cycle: 3",
+                  content: "Candidates screened: 72\nQualified this cycle: 3",
                 },
               },
             },
@@ -26,7 +25,7 @@ const FILE_SYSTEM = {
               children: {
                 "credentials.txt": {
                   type: "file",
-                  content: "Agent Credentials:\\nID: DCIB-17-ALPHA\\nPassphrase: NIGHTFALL-SIGNAL",
+                  content: "Agent Credentials:\nID: DCIB-17-ALPHA\nPassphrase: NIGHTFALL-SIGNAL",
                 },
               },
             },
@@ -70,6 +69,7 @@ class RecruitmentTerminal {
   }
 
   init() {
+    this.outputElement.innerHTML = "";
     this.renderStartupScreen();
     this.bindEvents();
     this.focusInput();
@@ -77,7 +77,6 @@ class RecruitmentTerminal {
 
   renderStartupScreen() {
     this.printLines(WELCOME_TEXT);
-    this.printLine(PROMPT);
   }
 
   bindEvents() {
@@ -96,7 +95,8 @@ class RecruitmentTerminal {
   }
 
   runCommand(commandLine) {
-    this.printLine(`recruit@dcib:${this.getPromptPath()}$ ${commandLine}`);
+    const promptPath = this.getPromptPath();
+    this.printLine(`recruit@dcib:${promptPath}$ ${commandLine}`);
 
     if (!commandLine) {
       return;
@@ -204,11 +204,11 @@ class RecruitmentTerminal {
   }
 
   getPromptPath() {
-    if (this.currentPath.length === 2) {
+    if (this.currentPath.length === 2 && this.currentPath[0] === "home" && this.currentPath[1] === "recruit") {
       return "~";
     }
 
-    return `~/${this.currentPath.slice(2).join("/")}`;
+    return `/${this.currentPath.join("/")}`;
   }
 
   printLine(text = "") {
@@ -236,19 +236,3 @@ window.addEventListener("DOMContentLoaded", () => {
   const terminal = new RecruitmentTerminal(outputElement, inputElement, formElement);
   terminal.init();
 });
-=======
-"brief.txt": {
-        // ...
-    },
-    "candidates.log": {
-        // ...
-    },
-    "credentials.txt": {
-        // ...
-    },
-    // ...
-const PROMPT = "recruit@dcib:~$";
-
-// ...
-this.printLine(PROMPT);
-main

@@ -11,19 +11,18 @@
       <section class="terminal-window">
         <header class="terminal-header">secure://dcib/recruitment/screening</header>
         <div id="terminalOutput" class="terminal-output" aria-live="polite"></div>
-        <form id="terminalForm" class="terminal-input-row" autocomplete="off">
-          <label class="terminal-prompt" for="terminalInput">recruit@dcib:~$</label>
-          <input
-            id="terminalInput"
-            class="terminal-input"
-            name="command"
-            type="text"
-            spellcheck="false"
-            aria-label="Terminal command input"
-          />
+        <form id="terminalForm" class="terminal-form">
+          <label for="terminalInput" class="visually-hidden">Enter command:</label>
+          <input type="text" id="terminalInput" class="terminal-input" placeholder="Enter command" autocomplete="off" />
         </form>
       </section>
     </main>
-    <script src="js/terminal.js"></script>
+    <script src="js/RecruitmentTerminal.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const terminal = new RecruitmentTerminal();
+        terminal.init();
+      });
+    </script>
   </body>
 </html>
