@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DCIB Recruitment Terminal</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="terminal-page">
+    <main class="terminal-wrapper" aria-label="DCIB terminal simulator">
+      <section class="terminal-window">
+        <header class="terminal-header">secure://dcib/recruitment/screening</header>
+        <div id="terminalOutput" class="terminal-output" aria-live="polite">
+          <p class="terminal-line">DEVOPS CRIME INVESTIGATION BUREAU</p>
+          <p class="terminal-line">Recruitment Screening Terminal v1.0</p>
+          <p class="terminal-line"></p>
+          <p class="terminal-line">Welcome, Candidate.</p>
+          <p class="terminal-line"></p>
+          <p class="terminal-line">DCIB systems cannot be accessed without proving technical competence.</p>
+          <p class="terminal-line"></p>
+          <p class="terminal-line">OBJECTIVE:</p>
+          <p class="terminal-line">Locate your Agent Credentials hidden within this system.</p>
+          <p class="terminal-line"></p>
+          <p class="terminal-line">Allowed commands:</p>
+          <p class="terminal-line">ls</p>
+          <p class="terminal-line">cd</p>
+          <p class="terminal-line">cat</p>
+          <p class="terminal-line">pwd</p>
+          <p class="terminal-line">clear</p>
+          <p class="terminal-line"></p>
+          <p class="terminal-line">Begin.</p>
+          <p class="terminal-line">recruit@dcib:~$</p>
+        </div>
+        <form id="terminalForm" class="terminal-input-row" autocomplete="off">
+          <label class="terminal-prompt" for="terminalInput">recruit@dcib:~$</label>
+          <input
+            id="terminalInput"
+            class="terminal-input"
+            name="command"
+            type="text"
+            spellcheck="false"
+            aria-label="Terminal command input"
+          />
+        </form>
+      </section>
+    </main>
+    <script src="js/terminal.js"></script>
+  </body>
+</html>
