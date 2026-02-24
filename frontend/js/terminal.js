@@ -16,7 +16,7 @@ const FILE_SYSTEM = {
               children: {
                 "candidates.log": {
                   type: "file",
-                  content: "Candidates screened: 72\\nQualified this cycle: 3",
+                  content: "Candidates screened: 72\nQualified this cycle: 3",
                 },
               },
             },
@@ -25,7 +25,7 @@ const FILE_SYSTEM = {
               children: {
                 "credentials.txt": {
                   type: "file",
-                  content: "Agent Credentials:\\nID: DCIB-17-ALPHA\\nPassphrase: NIGHTFALL-SIGNAL",
+                  content: "Agent Credentials:\nID: DCIB-17-ALPHA\nPassphrase: NIGHTFALL-SIGNAL",
                 },
               },
             },
@@ -97,7 +97,8 @@ class RecruitmentTerminal {
   }
 
   runCommand(commandLine) {
-    this.printLine(`recruit@dcib:${this.getPromptPath()}$ ${commandLine}`);
+    const promptPath = this.getPromptPath();
+    this.printLine(`recruit@dcib:${promptPath}$ ${commandLine}`);
 
     if (!commandLine) {
       return;
@@ -205,7 +206,7 @@ class RecruitmentTerminal {
   }
 
   getPromptPath() {
-    if (this.currentPath.length === 2) {
+    if (this.currentPath.length === 2 && this.currentPath[0] === "home" && this.currentPath[1] === "recruit") {
       return "~";
     }
 
