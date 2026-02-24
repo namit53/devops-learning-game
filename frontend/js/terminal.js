@@ -7,25 +7,25 @@ const FILE_SYSTEM = {
         recruit: {
           type: "dir",
           children: {
-            "brief.txt": {
+            "resume.txt": {
               type: "file",
-              content: "Review all directories. Agent credentials are hidden in plain sight.",
+              content: "Candidate ID: 8472\nPreferred alias: delta",
             },
-            records: {
+            "welcome_note.txt": {
+              type: "file",
+              content: "Welcome to the recruitment terminal.",
+            },
+            ".agent_profile": {
+              type: "file",
+              content: "rank=junior\nsecurityLevel=Secure",
+            },
+            archives: {
               type: "dir",
               children: {
-                "candidates.log": {
+                "interview_feedback.txt": {
                   type: "file",
-                  content: "Candidates screened: 72\nQualified this cycle: 3",
-                },
-              },
-            },
-            secure: {
-              type: "dir",
-              children: {
-                "credentials.txt": {
-                  type: "file",
-                  content: "Agent Credentials:\nID: DCIB-17-ALPHA\nPassphrase: NIGHTFALL-SIGNAL",
+                  content:
+                    "Strong problem-solving ability.\nRecommended password format: <alias><securityLevel>",
                 },
               },
             },
@@ -51,6 +51,7 @@ const WELCOME_TEXT = [
   "",
   "Allowed commands:",
   "ls",
+  "ls -a",
   "cd",
   "cat",
   "pwd",
@@ -64,7 +65,8 @@ class RecruitmentTerminal {
     this.outputElement = outputElement;
     this.inputElement = inputElement;
     this.formElement = formElement;
-    this.currentPath = ["home", "recruit"];
+    this.homePath = ["home", "recruit"];
+    this.currentPath = [...this.homePath];
     this.allowedCommands = new Set(["ls", "cd", "cat", "pwd", "clear"]);
   }
 
@@ -113,7 +115,7 @@ class RecruitmentTerminal {
 
     switch (command) {
       case "ls":
-        this.handleLs();
+        this.handleLs(args);
         break;
       case "cd":
         this.handleCd(args[0]);
@@ -132,34 +134,41 @@ class RecruitmentTerminal {
     }
   }
 
-  handleLs() {
+  handleLs(args = []) {
+    const showHidden = args.includes("-a");
+    const unsupportedFlags = args.filter((arg) => arg.startsWith("-") && arg !== "-a");
+
+    if (unsupportedFlags.length > 0) {
+      this.printLine(`ls: unsupported option: ${unsupportedFlags[0]}`);
+      return;
+    }
+
     const currentNode = this.getNodeFromPath(this.currentPath);
-    const entries = Object.keys(currentNode.children || {});
+    const entries = Object.keys(currentNode.children || {}).filter((name) => showHidden || !name.startsWith("."));
     this.printLine(entries.join("  "));
   }
 
   handleCd(target = "") {
     if (!target || target === "~") {
-      this.currentPath = ["home", "recruit"];
+      this.currentPath = [...this.homePath];
       return;
     }
 
-    if (target === "..") {
-      if (this.currentPath.length > 2) {
-        this.currentPath.pop();
-      }
+    const resolvedPath = this.resolvePath(target);
+
+    if (!resolvedPath) {
+      this.printLine(`cd: no such directory: ${target}`);
       return;
     }
 
-    const nextPath = [...this.currentPath, target];
-    const nextNode = this.getNodeFromPath(nextPath);
+    const nextNode = this.getNodeFromPath(resolvedPath);
 
     if (!nextNode || nextNode.type !== "dir") {
       this.printLine(`cd: no such directory: ${target}`);
       return;
     }
 
-    this.currentPath = nextPath;
+    this.currentPath = resolvedPath;
   }
 
   handleCat(fileName) {
@@ -168,7 +177,8 @@ class RecruitmentTerminal {
       return;
     }
 
-    const node = this.getNodeFromPath([...this.currentPath, fileName]);
+    const resolvedPath = this.resolvePath(fileName);
+    const node = resolvedPath ? this.getNodeFromPath(resolvedPath) : null;
 
     if (!node || node.type !== "file") {
       this.printLine(`cat: ${fileName}: No such file`);
@@ -185,6 +195,39 @@ class RecruitmentTerminal {
   handleClear() {
     this.outputElement.innerHTML = "";
     this.renderStartupScreen();
+  }
+
+  resolvePath(rawPath) {
+    const parts = rawPath.split("/").filter(Boolean);
+    let basePath;
+
+    if (rawPath.startsWith("/")) {
+      basePath = [];
+    } else if (rawPath.startsWith("~")) {
+      basePath = [...this.homePath];
+      if (parts[0] === "~") {
+        parts.shift();
+      }
+    } else {
+      basePath = [...this.currentPath];
+    }
+
+    for (const part of parts) {
+      if (part === ".") {
+        continue;
+      }
+
+      if (part === "..") {
+        if (basePath.length > 0) {
+          basePath.pop();
+        }
+        continue;
+      }
+
+      basePath.push(part);
+    }
+
+    return basePath;
   }
 
   getNodeFromPath(pathParts) {
@@ -206,11 +249,18 @@ class RecruitmentTerminal {
   }
 
   getPromptPath() {
-    if (this.currentPath.length === 2 && this.currentPath[0] === "home" && this.currentPath[1] === "recruit") {
+    if (
+      this.currentPath.length === this.homePath.length &&
+      this.currentPath.every((part, index) => part === this.homePath[index])
+    ) {
       return "~";
     }
 
-    return `~/${this.currentPath.slice(2).join("/")}`;
+    if (this.currentPath.slice(0, this.homePath.length).every((part, index) => part === this.homePath[index])) {
+      return `~/${this.currentPath.slice(this.homePath.length).join("/")}`;
+    }
+
+    return this.getAbsolutePath();
   }
 
   printLine(text = "") {
