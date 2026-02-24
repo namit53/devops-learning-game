@@ -219,3 +219,71 @@ body.crawl-page {
     pointer-events: auto;
   }
 }
+/* Recruitment terminal styles for frontend/terminal.html */
+body.terminal-page {
+  background: #000;
+  color: #29ff6a;
+  font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+}
+
+.terminal-wrapper {
+  position: relative;
+  z-index: 1;
+  width: min(92vw, 980px);
+  height: min(88vh, 700px);
+  display: grid;
+  place-items: center;
+}
+
+.terminal-window {
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(41, 255, 106, 0.5);
+  background: #020402;
+  box-shadow: 0 0 24px rgba(41, 255, 106, 0.2);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.terminal-header {
+  color: rgba(41, 255, 106, 0.75);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid rgba(41, 255, 106, 0.28);
+  padding-bottom: 0.65rem;
+}
+
+.terminal-output {
+  flex: 1;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+
+.terminal-line {
+  margin: 0;
+}
+
+.terminal-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid rgba(41, 255, 106, 0.25);
+  padding-top: 0.75rem;
+}
+
+.terminal-prompt {
+  color: #29ff6a;
+}
+
+.terminal-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: #29ff6a;
+  font: inherit;
+}
