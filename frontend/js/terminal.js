@@ -1,3 +1,4 @@
+codex/create-simulated-linux-terminal-in-frontend-8g67cb
 const FILE_SYSTEM = {
   type: "dir",
   children: {
@@ -235,3 +236,19 @@ window.addEventListener("DOMContentLoaded", () => {
   const terminal = new RecruitmentTerminal(outputElement, inputElement, formElement);
   terminal.init();
 });
+=======
+"brief.txt": {
+        // ...
+    },
+    "candidates.log": {
+        // ...
+    },
+    "credentials.txt": {
+        // ...
+    },
+    // ...
+const PROMPT = "recruit@dcib:~$";
+
+// ...
+this.printLine(PROMPT);
+main
