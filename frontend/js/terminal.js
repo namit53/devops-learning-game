@@ -77,6 +77,8 @@ class RecruitmentTerminal {
 
   renderStartupScreen() {
     this.printLines(WELCOME_TEXT);
+    this.printLine(PROMPT);
+    this.outputElement.scrollTop = 0;
   }
 
   bindEvents() {
@@ -208,7 +210,7 @@ class RecruitmentTerminal {
       return "~";
     }
 
-    return `/${this.currentPath.join("/")}`;
+    return `~/${this.currentPath.slice(2).join("/")}`;
   }
 
   printLine(text = "") {
