@@ -24,8 +24,7 @@ const FILE_SYSTEM = {
               children: {
                 "interview_feedback.txt": {
                   type: "file",
-                  content:
-                    "Strong problem-solving ability.\nRecommended password format: <alias><securityLevel>",
+                  content: "Strong problem-solving ability.\nRecommended password format: <alias><securityLevel>",
                 },
               },
             },
@@ -36,11 +35,16 @@ const FILE_SYSTEM = {
   },
 };
 
-const PROMPT = "recruit@dcib:~$";
+const PROMPT_LABEL = "recruit@dcib:~$";
+const HOME_PATH = ["home", "recruit"];
+const VALID_AGENT_ID = "8472";
+const VALID_PASSWORD = "deltaSecure";
 
-const WELCOME_TEXT = [
+const STARTUP_TEXT = [
+  "--------------------------------------------------",
   "DEVOPS CRIME INVESTIGATION BUREAU",
   "Recruitment Screening Terminal v1.0",
+  "--------------------------------------------------",
   "",
   "Welcome, Candidate.",
   "",
@@ -49,15 +53,12 @@ const WELCOME_TEXT = [
   "OBJECTIVE:",
   "Locate your Agent Credentials hidden within this system.",
   "",
-  "Allowed commands:",
-  "ls",
-  "ls -a",
-  "cd",
-  "cat",
-  "pwd",
-  "clear",
+  "After finding your credentials, authenticate using the command:",
+  "login",
   "",
-  "Begin.",
+  "Type 'help' if you are stuck.",
+  "",
+  "--------------------------------------------------",
 ];
 
 class RecruitmentTerminal {
@@ -65,22 +66,19 @@ class RecruitmentTerminal {
     this.outputElement = outputElement;
     this.inputElement = inputElement;
     this.formElement = formElement;
-    this.homePath = ["home", "recruit"];
-    this.currentPath = [...this.homePath];
-    this.allowedCommands = new Set(["ls", "cd", "cat", "pwd", "clear"]);
+    this.currentPath = [...HOME_PATH];
+    this.commandHistory = [];
+    this.historyIndex = 0;
+    this.isAuthenticated = false;
+    this.authFlow = null;
+    this.pendingAgentId = "";
   }
 
   init() {
     this.outputElement.innerHTML = "";
-    this.renderStartupScreen();
+    this.printLines(STARTUP_TEXT);
     this.bindEvents();
     this.focusInput();
-  }
-
-  renderStartupScreen() {
-    this.printLines(WELCOME_TEXT);
-    this.printLine(PROMPT);
-    this.outputElement.scrollTop = 0;
   }
 
   bindEvents() {
@@ -88,30 +86,40 @@ class RecruitmentTerminal {
       event.preventDefault();
       const rawInput = this.inputElement.value;
       this.inputElement.value = "";
-      this.runCommand(rawInput.trim());
+      this.execute(rawInput.trim());
+    });
+
+    this.inputElement.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        this.showPreviousHistory();
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        this.showNextHistory();
+      }
     });
 
     window.addEventListener("click", () => this.focusInput());
   }
 
-  focusInput() {
-    this.inputElement.focus();
-  }
+  execute(inputLine) {
+    this.printLine(`${PROMPT_LABEL} ${inputLine}`);
 
-  runCommand(commandLine) {
-    const promptPath = this.getPromptPath();
-    this.printLine(`recruit@dcib:${promptPath}$ ${commandLine}`);
-
-    if (!commandLine) {
+    if (!inputLine) {
       return;
     }
 
-    const [command, ...args] = commandLine.split(/\s+/);
+    this.commandHistory.push(inputLine);
+    this.historyIndex = this.commandHistory.length;
 
-    if (!this.allowedCommands.has(command)) {
-      this.printLine(`Command not allowed: ${command}`);
+    if (this.authFlow) {
+      this.handleLoginPromptInput(inputLine);
       return;
     }
+
+    const [command, ...args] = inputLine.split(/\s+/);
 
     switch (command) {
       case "ls":
@@ -124,46 +132,141 @@ class RecruitmentTerminal {
         this.handleCat(args[0]);
         break;
       case "pwd":
-        this.handlePwd();
+        this.printLine(this.getAbsolutePath());
         break;
       case "clear":
-        this.handleClear();
+        this.outputElement.innerHTML = "";
+        break;
+      case "help":
+        this.handleHelp();
+        break;
+      case "login":
+        this.startLoginFlow();
+        break;
+      case "view-cases":
+        this.handleViewCases();
+        break;
+      case "solve":
+        this.handleSolve(args);
         break;
       default:
-        this.printLine("Unknown command");
+        this.printLine(`Command not found: ${command}`);
     }
   }
 
-  handleLs(args = []) {
-    const showHidden = args.includes("-a");
-    const unsupportedFlags = args.filter((arg) => arg.startsWith("-") && arg !== "-a");
-
-    if (unsupportedFlags.length > 0) {
-      this.printLine(`ls: unsupported option: ${unsupportedFlags[0]}`);
+  handleHelp() {
+    if (!this.isAuthenticated) {
+      this.printLines([
+        "Find your credentials inside /home/recruit by exploring files with ls, cd, and cat.",
+        "When you have them, run 'login' and enter your Agent ID and password.",
+      ]);
       return;
     }
 
-    const currentNode = this.getNodeFromPath(this.currentPath);
-    const entries = Object.keys(currentNode.children || {}).filter((name) => showHidden || !name.startsWith("."));
+    this.printLines([
+      "Authorized commands:",
+      "ls, ls -a, cd, cat, pwd, clear, help, view-cases, solve case1",
+    ]);
+  }
+
+  startLoginFlow() {
+    if (this.isAuthenticated) {
+      this.printLine("Already authenticated.");
+      return;
+    }
+
+    this.authFlow = "agentId";
+    this.pendingAgentId = "";
+    this.printLine("Agent ID:");
+  }
+
+  handleLoginPromptInput(value) {
+    if (this.authFlow === "agentId") {
+      this.pendingAgentId = value;
+      this.authFlow = "password";
+      this.printLine("Password:");
+      return;
+    }
+
+    if (this.authFlow === "password") {
+      const isValid = this.pendingAgentId === VALID_AGENT_ID && value === VALID_PASSWORD;
+      this.authFlow = null;
+      this.pendingAgentId = "";
+
+      if (!isValid) {
+        this.printLine("Authentication failed. Invalid Agent ID or password.");
+        return;
+      }
+
+      this.isAuthenticated = true;
+      this.printLines([
+        "Authentication successful.",
+        "Welcome Agent.",
+        "",
+        "You are now authorized to access DCIB investigations.",
+        "",
+        "Type 'view-cases' to see available investigations.",
+      ]);
+    }
+  }
+
+  handleViewCases() {
+    if (!this.isAuthenticated) {
+      this.printLine("Access denied. Authenticate first using 'login'.");
+      return;
+    }
+
+    this.printLines([
+      "Available Investigations",
+      "",
+      "CASE 001 – The Missing Dependency",
+      "Status: OPEN",
+      "",
+      "solve case1",
+    ]);
+  }
+
+  handleSolve(args) {
+    if (!this.isAuthenticated) {
+      this.printLine("Access denied. Authenticate first using 'login'.");
+      return;
+    }
+
+    if (args[0] !== "case1") {
+      this.printLine("Unknown case. Try: solve case1");
+      return;
+    }
+
+    this.printLine("Launching investigation...");
+    setTimeout(() => {
+      window.location.href = "level1.html";
+    }, 600);
+  }
+
+  handleLs(args) {
+    const showHidden = args.includes("-a");
+    const unsupported = args.find((arg) => arg.startsWith("-") && arg !== "-a");
+
+    if (unsupported) {
+      this.printLine(`ls: unsupported option: ${unsupported}`);
+      return;
+    }
+
+    const node = this.getNodeFromPath(this.currentPath);
+    const entries = Object.keys(node.children || {}).filter((name) => showHidden || !name.startsWith("."));
     this.printLine(entries.join("  "));
   }
 
-  handleCd(target = "") {
+  handleCd(target) {
     if (!target || target === "~") {
-      this.currentPath = [...this.homePath];
+      this.currentPath = [...HOME_PATH];
       return;
     }
 
     const resolvedPath = this.resolvePath(target);
+    const node = resolvedPath ? this.getNodeFromPath(resolvedPath) : null;
 
-    if (!resolvedPath) {
-      this.printLine(`cd: no such directory: ${target}`);
-      return;
-    }
-
-    const nextNode = this.getNodeFromPath(resolvedPath);
-
-    if (!nextNode || nextNode.type !== "dir") {
+    if (!node || node.type !== "dir") {
       this.printLine(`cd: no such directory: ${target}`);
       return;
     }
@@ -188,29 +291,9 @@ class RecruitmentTerminal {
     this.printLine(node.content);
   }
 
-  handlePwd() {
-    this.printLine(this.getAbsolutePath());
-  }
-
-  handleClear() {
-    this.outputElement.innerHTML = "";
-    this.renderStartupScreen();
-  }
-
   resolvePath(rawPath) {
+    const basePath = rawPath.startsWith("/") ? [] : [...this.currentPath];
     const parts = rawPath.split("/").filter(Boolean);
-    let basePath;
-
-    if (rawPath.startsWith("/")) {
-      basePath = [];
-    } else if (rawPath.startsWith("~")) {
-      basePath = [...this.homePath];
-      if (parts[0] === "~") {
-        parts.shift();
-      }
-    } else {
-      basePath = [...this.currentPath];
-    }
 
     for (const part of parts) {
       if (part === ".") {
@@ -224,6 +307,12 @@ class RecruitmentTerminal {
         continue;
       }
 
+      if (part === "~") {
+        basePath.length = 0;
+        basePath.push(...HOME_PATH);
+        continue;
+      }
+
       basePath.push(part);
     }
 
@@ -231,36 +320,39 @@ class RecruitmentTerminal {
   }
 
   getNodeFromPath(pathParts) {
-    let currentNode = FILE_SYSTEM;
+    let node = FILE_SYSTEM;
 
     for (const part of pathParts) {
-      if (!currentNode.children || !currentNode.children[part]) {
+      if (!node.children || !node.children[part]) {
         return null;
       }
-
-      currentNode = currentNode.children[part];
+      node = node.children[part];
     }
 
-    return currentNode;
+    return node;
   }
 
   getAbsolutePath() {
     return `/${this.currentPath.join("/")}`;
   }
 
-  getPromptPath() {
-    if (
-      this.currentPath.length === this.homePath.length &&
-      this.currentPath.every((part, index) => part === this.homePath[index])
-    ) {
-      return "~";
+  showPreviousHistory() {
+    if (this.historyIndex <= 0) {
+      return;
     }
 
-    if (this.currentPath.slice(0, this.homePath.length).every((part, index) => part === this.homePath[index])) {
-      return `~/${this.currentPath.slice(this.homePath.length).join("/")}`;
+    this.historyIndex -= 1;
+    this.inputElement.value = this.commandHistory[this.historyIndex] || "";
+  }
+
+  showNextHistory() {
+    if (this.historyIndex >= this.commandHistory.length) {
+      this.inputElement.value = "";
+      return;
     }
 
-    return this.getAbsolutePath();
+    this.historyIndex += 1;
+    this.inputElement.value = this.commandHistory[this.historyIndex] || "";
   }
 
   printLine(text = "") {
@@ -273,6 +365,10 @@ class RecruitmentTerminal {
 
   printLines(lines) {
     lines.forEach((line) => this.printLine(line));
+  }
+
+  focusInput() {
+    this.inputElement.focus();
   }
 }
 
