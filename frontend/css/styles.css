@@ -370,6 +370,12 @@ body.level1-page {
   box-shadow: 0 0 12px rgba(67, 224, 139, 0.24);
 }
 
+.pipeline-step.failed {
+  border-color: rgba(255, 109, 109, 0.85);
+  color: #ff6d6d;
+  box-shadow: 0 0 12px rgba(255, 77, 77, 0.22);
+}
+
 .log-panel,
 .detail-panel,
 .config-terminal {
