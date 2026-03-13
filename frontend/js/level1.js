@@ -58,7 +58,7 @@ const router = express.Router()
 const _ = require("lodash")
 
 function calculateCartTotal(items){
-  return _.sumBy(items,"price")
+  return _.sumBy(items,"cost")
 }
 
 router.get("/",(req,res)=>{
