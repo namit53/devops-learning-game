@@ -395,6 +395,21 @@ body.level1-page {
   margin-bottom: 0.5rem;
 }
 
+
+#repoExplorer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  flex: 1;
+  min-height: 420px;
+}
+
+#codeEditor {
+  width: 100%;
+  min-height: 320px;
+  resize: vertical;
+}
+
 .log-output,
 .detail-output,
 .config-output {
