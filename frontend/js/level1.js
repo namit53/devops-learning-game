@@ -5,6 +5,7 @@ const state = {
   resolved: false,
   activeFilePath: null,
   isEditingCode: false,
+  rerunInProgress: false,
 };
 
 const INITIAL_LOGS = [
@@ -242,7 +243,7 @@ function renderRepoExplorer() {
   cartBtn.type = 'button';
   cartBtn.className = 'action-button';
   cartBtn.dataset.path = 'controllers/cartController.js';
-  cartBtn.textContent = '    └── cartController.js';
+  cartBtn.textContent = '│   └── cartController.js';
 
   const tests = document.createElement('div');
   tests.textContent = '└── tests';
@@ -405,10 +406,14 @@ function completeCase() {
   }, 3000);
 }
 
-document.getElementById('rerunBtn').addEventListener('click', () => {
-  if (state.resolved) {
-    return;
+
+function setStatusText(label, isFailure = true) {
+  statusValue.textContent = `● ${label}`;
+  if (isFailure) {
+    statusValue.classList.add('status-failed');
+    statusValue.classList.remove('status-success');
   }
+}
 
   const streamedLines = [
     { text: '', delay: 120 },
