@@ -78,6 +78,18 @@ router.get("/",(req,res)=>{
 })
 
 module.exports = router`,
+  'tests/cartTotalCalculation.test.js': `const { calculateCartTotal } = require("../controllers/cartController")
+
+test("cart total calculation", () => {
+  const items = [
+    { name: "Laptop", price: 800 },
+    { name: "Mouse", price: 20 }
+  ]
+
+  const total = calculateCartTotal(items)
+
+  expect(total).toBe(820)
+})`,
 };
 
 const logOutput = document.getElementById('logOutput');
@@ -113,6 +125,11 @@ function renderLogs() {
 
 function appendLogs(lines) {
   logs.push(...lines);
+  renderLogs();
+}
+
+function appendLog(line) {
+  logs.push(line);
   renderLogs();
 }
 
@@ -219,7 +236,7 @@ function renderRepoExplorer() {
   serverBtn.textContent = '├── server.js';
 
   const controllers = document.createElement('div');
-  controllers.textContent = '└── controllers';
+  controllers.textContent = '├── controllers';
 
   const cartBtn = document.createElement('button');
   cartBtn.type = 'button';
@@ -227,7 +244,16 @@ function renderRepoExplorer() {
   cartBtn.dataset.path = 'controllers/cartController.js';
   cartBtn.textContent = '    └── cartController.js';
 
-  [packageBtn, serverBtn, cartBtn].forEach((button) => {
+  const tests = document.createElement('div');
+  tests.textContent = '└── tests';
+
+  const testFileBtn = document.createElement('button');
+  testFileBtn.type = 'button';
+  testFileBtn.className = 'action-button';
+  testFileBtn.dataset.path = 'tests/cartTotalCalculation.test.js';
+  testFileBtn.textContent = '    └── cartTotalCalculation.test.js';
+
+  [packageBtn, serverBtn, cartBtn, testFileBtn].forEach((button) => {
     button.style.display = 'block';
     button.style.width = '100%';
     button.style.textAlign = 'left';
@@ -239,6 +265,27 @@ function renderRepoExplorer() {
   repoTree.appendChild(serverBtn);
   repoTree.appendChild(controllers);
   repoTree.appendChild(cartBtn);
+  repoTree.appendChild(tests);
+  repoTree.appendChild(testFileBtn);
+}
+
+function setPipelineStatus(steps) {
+  Object.entries(steps).forEach(([stepName, status]) => {
+    const stepEl = pipelineProgress.querySelector(`[data-step="${stepName}"]`);
+    if (!stepEl) {
+      return;
+    }
+
+    stepEl.classList.remove('done', 'failed');
+
+    if (status === 'done') {
+      stepEl.classList.add('done');
+    }
+
+    if (status === 'failed') {
+      stepEl.classList.add('failed');
+    }
+  });
 }
 
 document.getElementById('inspectBtn').addEventListener('click', () => {
@@ -363,35 +410,48 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
     return;
   }
 
-  if (!state.dependencyInstalled) {
-    appendLogs([
-      '',
-      '> Re-running pipeline...',
-      '> Installing dependencies...',
-      '> Running build script...',
-      "> ERROR: Module 'lodash' not found in package.json",
-      '> Build failed again.',
-    ]);
-    return;
-  }
+  const streamedLines = [
+    { text: '', delay: 120 },
+    { text: '> Re-running pipeline...', delay: 350 },
+    { text: '', delay: 200 },
+    { text: '> Stage: Checkout', delay: 500 },
+    { text: '✔ Repository cloned', delay: 600 },
+    { text: '', delay: 250 },
+    { text: '> Stage: Install Dependencies', delay: 500 },
+    { text: '✔ lodash installed successfully', delay: 600 },
+    { text: '', delay: 250 },
+    { text: '> Stage: Build', delay: 500 },
+    { text: '✔ Build completed', delay: 600 },
+    { text: '', delay: 250 },
+    { text: '> Stage: Test', delay: 400 },
+    { text: 'Running unit tests...', delay: 1700 },
+    { text: '', delay: 300 },
+    { text: '> Stage: Test', delay: 300 },
+    { text: 'Running unit tests...', delay: 300 },
+    { text: '', delay: 300 },
+    { text: '✖ cartTotalCalculation.test.js FAILED', delay: 350 },
+    { text: '', delay: 200 },
+    { text: 'Expected: 820', delay: 200 },
+    { text: 'Received: 0', delay: 350 },
+    { text: '', delay: 200 },
+    { text: 'Test suite failed.', delay: 100 },
+  ];
 
-  appendLogs([
-    '',
-    '> Re-running pipeline...',
-    '> Installing dependencies...',
-    '> lodash installed successfully',
-    '> Build completed',
-    '> Running tests...',
-    '> Tests passed',
-    '> Deploying application...',
-    '',
-    'SUCCESS: Build pipeline completed.',
-    '',
-    'CASE 001 RESOLVED.',
-  ]);
+  let elapsed = 0;
 
-  runSuccessAnimation();
-  setTimeout(completeCase, 2800);
+  streamedLines.forEach((entry) => {
+    elapsed += entry.delay;
+    setTimeout(() => appendLog(entry.text), elapsed);
+  });
+
+  setTimeout(() => {
+    setPipelineStatus({
+      checkout: 'done',
+      build: 'done',
+      test: 'failed',
+      deploy: 'pending',
+    });
+  }, elapsed + 120);
 });
 
 startInvestigationBtn.addEventListener('click', () => {
