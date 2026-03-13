@@ -19,10 +19,53 @@ const inspectLogsBtn = document.getElementById("inspectLogsBtn");
 const reviewCodeBtn = document.getElementById("reviewCodeBtn");
 const editConfigBtn = document.getElementById("editConfigBtn");
 const rerunJobBtn = document.getElementById("rerunJobBtn");
+
+const overlay = document.getElementById("overlay");
+const panelTitle = document.getElementById("panelTitle");
+const panelBody = document.getElementById("panelBody");
 const closePanelBtn = document.getElementById("closePanelBtn");
 
+function tickTime() {
+  systemTime.textContent = new Date().toLocaleTimeString();
+}
+
 function renderPipeline() {
-  pipelineBoard.innerHTML = "";
+  board.innerHTML = "";
+
+  pipelineStages.forEach((stage) => {
+    const item = document.createElement("div");
+    item.className = `pipeline-stage ${stage.status}`;
+    item.innerHTML = `<span class="dot"></span>${stage.name} ${stage.icon}`;
+    board.appendChild(item);
+  });
+}
+
+function setBuildFailedStatus() {
+  buildStatus.className = "build-status failed";
+  statusText.textContent = "STATUS: BUILD FAILED";
+}
+
+function setBuildSuccessStatus() {
+  buildStatus.className = "build-status success";
+  statusText.textContent = "STATUS: BUILD SUCCESSFUL";
+}
+
+function setLogs(lines) {
+  logView.textContent = lines.join("\n");
+  logView.scrollTop = logView.scrollHeight;
+}
+
+function appendLogs(lines) {
+  const existing = logView.textContent ? `${logView.textContent}\n` : "";
+  logView.textContent = `${existing}${lines.join("\n")}`;
+  logView.scrollTop = logView.scrollHeight;
+}
+
+function openPanel(title, body) {
+  panelTitle.textContent = title;
+  panelBody.innerHTML = "";
+  panelBody.appendChild(body);
+const closePanelBtn = document.getElementById("closePanelBtn");
 
   pipelineStages.forEach((stage) => {
     const stageElement = document.createElement("div");
