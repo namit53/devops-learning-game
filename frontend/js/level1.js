@@ -415,13 +415,6 @@ function setStatusText(label, isFailure = true) {
   }
 }
 
-document.getElementById('rerunBtn').addEventListener('click', () => {
-  if (state.resolved || state.rerunInProgress) {
-    return;
-  }
-
-  state.rerunInProgress = true;
-
   const streamedLines = [
     { text: '', delay: 120 },
     { text: '> Re-running pipeline...', delay: 350 },
@@ -463,8 +456,6 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
       test: 'failed',
       deploy: 'pending',
     });
-    setStatusText('TEST FAILED');
-    state.rerunInProgress = false;
   }, elapsed + 120);
 });
 
