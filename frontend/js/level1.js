@@ -410,6 +410,7 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
     return;
   }
 
+  const failureTriggerLine = '✖ cartTotalCalculation.test.js FAILED';
   const streamedLines = [
     { text: '', delay: 120 },
     { text: '> Re-running pipeline...', delay: 350 },
@@ -429,7 +430,7 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
     { text: '> Stage: Test', delay: 300 },
     { text: 'Running unit tests...', delay: 300 },
     { text: '', delay: 300 },
-    { text: '✖ cartTotalCalculation.test.js FAILED', delay: 350 },
+    { text: failureTriggerLine, delay: 350 },
     { text: '', delay: 200 },
     { text: 'Expected: 820', delay: 200 },
     { text: 'Received: 0', delay: 350 },
@@ -441,21 +442,24 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
 
   streamedLines.forEach((entry) => {
     elapsed += entry.delay;
-    setTimeout(() => appendLog(entry.text), elapsed);
+
+    setTimeout(() => {
+      appendLog(entry.text);
+
+      if (entry.text === failureTriggerLine) {
+        setPipelineStatus({
+          checkout: 'done',
+          build: 'done',
+          test: 'failed',
+          deploy: 'pending',
+        });
+
+        statusValue.textContent = '● TEST FAILED';
+        statusValue.classList.remove('status-success');
+        statusValue.classList.add('status-failed');
+      }
+    }, elapsed);
   });
-
-  setTimeout(() => {
-    setPipelineStatus({
-      checkout: 'done',
-      build: 'done',
-      test: 'failed',
-      deploy: 'pending',
-    });
-
-    statusValue.textContent = '● TEST FAILED';
-    statusValue.classList.remove('status-success');
-    statusValue.classList.add('status-failed');
-  }, elapsed + 120);
 });
 
 startInvestigationBtn.addEventListener('click', () => {
