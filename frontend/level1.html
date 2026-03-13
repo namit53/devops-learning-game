@@ -50,6 +50,12 @@ identify the issue, and restore the pipeline.</pre>
         <div id="repoExplorer" hidden>
           <div class="config-output" id="repoTree" role="tree" aria-label="Repository file explorer"></div>
           <pre class="detail-output" id="codeViewer">Select a file from the explorer to open it.</pre>
+          <textarea class="detail-output" id="codeEditor" hidden aria-label="Editable source code"></textarea>
+          <div class="action-row" id="codeActionRow" style="margin-top: 0.6rem; grid-template-columns: repeat(2, minmax(0, 180px));" hidden>
+            <button type="button" class="action-button" id="editCodeBtn">Edit Code</button>
+            <button type="button" class="action-button primary" id="saveCodeBtn" hidden>Save</button>
+          </div>
+          <p id="saveCodeMessage" style="margin: 0.4rem 0 0; color: #43e08b; font-size: 0.82rem;" hidden>File saved successfully</p>
         </div>
         <pre class="detail-output" id="detailOutput"></pre>
       </section>

@@ -3,6 +3,8 @@ const state = {
   logsExpanded: false,
   codeViewed: false,
   resolved: false,
+  activeFilePath: null,
+  isEditingCode: false,
 };
 
 const INITIAL_LOGS = [
@@ -35,7 +37,7 @@ const EXTRA_LOGS = [
   'Exit code: 1',
 ];
 
-const REPO_FILES = {
+const files = {
   'package.json': `{
   "name": "ecom-checkout",
   "version": "1.0.0",
@@ -85,6 +87,11 @@ const detailOutput = document.getElementById('detailOutput');
 const repoExplorer = document.getElementById('repoExplorer');
 const repoTree = document.getElementById('repoTree');
 const codeViewer = document.getElementById('codeViewer');
+const codeEditor = document.getElementById('codeEditor');
+const codeActionRow = document.getElementById('codeActionRow');
+const editCodeBtn = document.getElementById('editCodeBtn');
+const saveCodeBtn = document.getElementById('saveCodeBtn');
+const saveCodeMessage = document.getElementById('saveCodeMessage');
 const configTerminal = document.getElementById('configTerminal');
 const configOutput = document.getElementById('configOutput');
 const configForm = document.getElementById('configForm');
@@ -134,6 +141,34 @@ function showPanel(type) {
   }
 }
 
+function setPipelineDefaults() {
+  pipelineProgress.hidden = false;
+
+  const defaults = {
+    checkout: 'done',
+    build: 'failed',
+    test: 'pending',
+    deploy: 'pending',
+  };
+
+  Object.entries(defaults).forEach(([stepName, status]) => {
+    const stepEl = pipelineProgress.querySelector(`[data-step="${stepName}"]`);
+    if (!stepEl) {
+      return;
+    }
+
+    stepEl.classList.remove('done', 'failed');
+
+    if (status === 'done') {
+      stepEl.classList.add('done');
+    }
+
+    if (status === 'failed') {
+      stepEl.classList.add('failed');
+    }
+  });
+}
+
 function setActiveFile(path) {
   const fileButtons = repoTree.querySelectorAll('button[data-path]');
   fileButtons.forEach((button) => {
@@ -144,14 +179,23 @@ function setActiveFile(path) {
 }
 
 function openFile(path) {
-  const contents = REPO_FILES[path];
+  const contents = files[path];
   if (!contents) {
     return;
   }
 
   state.codeViewed = true;
+  state.activeFilePath = path;
+  state.isEditingCode = false;
   detailTitle.textContent = `Source Review — ${path}`;
+  codeViewer.hidden = false;
+  codeEditor.hidden = true;
   codeViewer.textContent = contents;
+  codeEditor.value = contents;
+  codeActionRow.hidden = false;
+  editCodeBtn.hidden = false;
+  saveCodeBtn.hidden = true;
+  saveCodeMessage.hidden = true;
   setActiveFile(path);
 }
 
@@ -214,8 +258,43 @@ document.getElementById('reviewBtn').addEventListener('click', () => {
   detailTitle.textContent = 'Source Review';
   detailOutput.hidden = true;
   repoExplorer.hidden = false;
+  codeViewer.hidden = false;
+  codeEditor.hidden = true;
   codeViewer.textContent = 'Select a file from the explorer to open it.';
+  codeActionRow.hidden = true;
+  saveCodeMessage.hidden = true;
   showPanel('detail');
+});
+
+
+editCodeBtn.addEventListener('click', () => {
+  if (!state.activeFilePath) {
+    return;
+  }
+
+  state.isEditingCode = true;
+  codeEditor.value = files[state.activeFilePath] || '';
+  codeViewer.hidden = true;
+  codeEditor.hidden = false;
+  editCodeBtn.hidden = true;
+  saveCodeBtn.hidden = false;
+  saveCodeMessage.hidden = true;
+  codeEditor.focus();
+});
+
+saveCodeBtn.addEventListener('click', () => {
+  if (!state.activeFilePath) {
+    return;
+  }
+
+  files[state.activeFilePath] = codeEditor.value;
+  state.isEditingCode = false;
+  codeViewer.textContent = files[state.activeFilePath];
+  codeViewer.hidden = false;
+  codeEditor.hidden = true;
+  editCodeBtn.hidden = false;
+  saveCodeBtn.hidden = true;
+  saveCodeMessage.hidden = false;
 });
 
 document.getElementById('configBtn').addEventListener('click', () => {
@@ -254,10 +333,15 @@ function runSuccessAnimation() {
   steps.forEach((name, index) => {
     setTimeout(() => {
       const el = pipelineProgress.querySelector(`[data-step="${name}"]`);
-      if (el) {
-        el.textContent = `${el.textContent} ✔`;
-        el.classList.add('done');
+      if (!el) {
+        return;
       }
+
+      if (!el.textContent.includes('✔')) {
+        el.textContent = `${el.textContent} ✔`;
+      }
+      el.classList.remove('failed');
+      el.classList.add('done');
     }, 600 * (index + 1));
   });
 }
@@ -315,6 +399,7 @@ startInvestigationBtn.addEventListener('click', () => {
   levelDashboard.hidden = false;
   setClock();
   renderLogs();
+  setPipelineDefaults();
   configInput.blur();
 });
 
