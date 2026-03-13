@@ -287,3 +287,383 @@ body.terminal-page {
   color: #29ff6a;
   font: inherit;
 }
+
+/* Level 1 investigation styles for frontend/level1.html */
+body.level-page {
+  overflow: auto;
+  background: radial-gradient(circle at 20% 10%, #17253f 0%, #0a101a 45%, #05080d 100%);
+  color: var(--text-primary);
+}
+
+.level-container {
+  position: relative;
+  z-index: 1;
+  width: min(95vw, 980px);
+  margin: 3vh auto;
+  padding: 1.5rem;
+  border: 1px solid rgba(84, 214, 255, 0.22);
+  border-radius: 14px;
+  background: rgba(8, 14, 24, 0.9);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  display: grid;
+  gap: 1rem;
+}
+
+.level-header h1 {
+  font-size: clamp(1.2rem, 2.4vw, 1.8rem);
+  margin: 0;
+  letter-spacing: 0.06em;
+}
+
+.level-header p {
+  margin: 0.4rem 0 0;
+  color: var(--text-muted);
+}
+
+.pipeline-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.pipeline-stage {
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.pipeline-stage.success {
+  background: rgba(41, 255, 106, 0.12);
+  border-color: rgba(41, 255, 106, 0.45);
+  color: #9dffbc;
+}
+
+.pipeline-stage.success .dot {
+  background: #29ff6a;
+}
+
+.pipeline-stage.failed {
+  background: rgba(255, 77, 109, 0.14);
+  border-color: rgba(255, 77, 109, 0.5);
+  color: #ffb8c4;
+}
+
+.pipeline-stage.failed .dot {
+  background: #ff4d6d;
+}
+
+.pipeline-stage.pending {
+  background: rgba(198, 210, 228, 0.12);
+  border-color: rgba(198, 210, 228, 0.3);
+  color: #c8d2e3;
+}
+
+.pipeline-stage.pending .dot {
+  background: #94a3b8;
+}
+
+.level-terminal {
+  border-radius: 10px;
+  border: 1px solid rgba(84, 214, 255, 0.25);
+  background: #02050a;
+  padding: 1rem;
+  min-height: 220px;
+}
+
+.level-terminal pre,
+.terminal-block,
+.terminal-line {
+  margin: 0;
+  color: #8fffb7;
+  font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.status-message {
+  margin: 0;
+  color: #d6e4ff;
+}
+
+.status-message.error {
+  color: #ff9fb1;
+}
+
+.status-message.success {
+  color: #8fffbb;
+}
+
+.level-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.level-actions button,
+.config-controls button,
+.close-btn {
+  border: 1px solid rgba(84, 214, 255, 0.42);
+  background: rgba(84, 214, 255, 0.07);
+  color: var(--text-primary);
+  padding: 0.55rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.level-actions button:hover,
+.config-controls button:hover,
+.close-btn:hover {
+  background: rgba(84, 214, 255, 0.16);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(2, 6, 12, 0.76);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.panel {
+  width: min(92vw, 760px);
+  border: 1px solid rgba(84, 214, 255, 0.35);
+  border-radius: 10px;
+  background: #060d17;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.4);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(84, 214, 255, 0.22);
+  padding: 0.7rem 0.9rem;
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.panel-body {
+  padding: 1rem;
+}
+
+.highlight-error {
+  color: #ff6f8a;
+  background: rgba(255, 77, 109, 0.18);
+  border-left: 2px solid #ff4d6d;
+  padding-left: 0.45rem;
+}
+
+.config-view {
+  margin-bottom: 0.8rem;
+}
+
+.config-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.config-controls select {
+  background: #02050a;
+  color: #d6e4ff;
+  border: 1px solid rgba(84, 214, 255, 0.3);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+}
+
+.config-feedback {
+  margin: 0;
+  color: #d6e4ff;
+}
+
+.config-feedback.error {
+  color: #ff9fb1;
+}
+
+.config-feedback.success {
+  color: #8fffbb;
+}
+
+/* Refined Level 1 Jenkins-style dashboard */
+body.level-page {
+  overflow: auto;
+  background: linear-gradient(160deg, #0a0f18 0%, #0d1320 55%, #070b11 100%);
+}
+
+.jenkins-shell {
+  width: min(95vw, 1100px);
+  margin: 2.5vh auto;
+  border: 1px solid #29374f;
+  border-radius: 10px;
+  background: #0b1220;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  padding: 1rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.jenkins-topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #2a3c5a;
+  border-radius: 8px;
+  background: #111a2d;
+}
+
+.project-label,
+.time-label {
+  margin: 0;
+  font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  color: #d4e4ff;
+}
+
+.build-status {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.build-status.failed {
+  border-color: rgba(255, 87, 111, 0.62);
+  background: rgba(255, 87, 111, 0.12);
+  color: #ffb9c5;
+}
+
+.build-status.success {
+  border-color: rgba(46, 221, 130, 0.62);
+  background: rgba(46, 221, 130, 0.12);
+  color: #b6ffd5;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pipeline-board {
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+}
+
+.level-terminal {
+  background: #050b14;
+  border: 1px solid #2b3c5a;
+  min-height: 310px;
+}
+
+#pipelineLog {
+  color: #8effbd;
+}
+
+.level-actions {
+  padding-top: 0.4rem;
+}
+
+.level-actions button {
+  min-width: 130px;
+  border-radius: 4px;
+  border-color: #395988;
+  background: linear-gradient(180deg, #1b2b45 0%, #152338 100%);
+  font-weight: 600;
+}
+
+.level-actions button:hover {
+  background: linear-gradient(180deg, #24395b 0%, #1d2f4b 100%);
+}
+
+.resolution-banner {
+  margin: 0;
+  color: #90ffbd;
+  font-weight: 600;
+}
+
+.config-terminal {
+  border: 1px solid #2e415f;
+  border-radius: 8px;
+  background: #030812;
+  padding: 0.8rem;
+}
+
+.config-output {
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 0.7rem;
+}
+
+.config-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  border-top: 1px solid #2a3d5f;
+  padding-top: 0.65rem;
+}
+
+.config-prompt {
+  font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+  color: #8effbd;
+  white-space: nowrap;
+}
+
+.config-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #8effbd;
+  font: inherit;
+}
+
+.success-line {
+  color: #8effbd;
+}
+
+.error-line {
+  color: #ff98ae;
+}
+
+.clue-line {
+  color: #ffd384;
+}
+
+@media (max-width: 760px) {
+  .jenkins-topbar {
+    flex-direction: column;
+  }
+
+  .pipeline-board {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+}

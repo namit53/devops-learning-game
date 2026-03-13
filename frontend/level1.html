@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DCIB - Level 1 Investigation</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="level-page">
+    <main class="jenkins-shell">
+      <header class="jenkins-topbar">
+        <p class="project-label">PROJ: E-COM CHECKOUT</p>
+        <p class="time-label">TIME: <span id="systemTime">--:--:--</span></p>
+      </header>
+
+      <section class="build-status failed" id="buildStatus">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="statusText">STATUS: BUILD FAILED</span>
+      </section>
+
+      <section class="pipeline-board" id="pipelineBoard" aria-label="Pipeline stages"></section>
+
+      <section class="level-terminal" aria-live="polite">
+        <pre id="pipelineLog"></pre>
+      </section>
+
+      <p id="resolutionBanner" class="resolution-banner hidden">Returning to DCIB terminal...</p>
+
+      <section class="level-actions" aria-label="Investigation actions">
+        <button type="button" id="inspectLogsBtn">Inspect Logs</button>
+        <button type="button" id="reviewCodeBtn">Review Code</button>
+        <button type="button" id="editConfigBtn">Edit Config</button>
+        <button type="button" id="rerunJobBtn">Re-run Job</button>
+      </section>
+    </main>
+
+    <div id="overlay" class="overlay hidden" aria-hidden="true">
+      <div class="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+        <div class="panel-header">
+          <h2 id="panelTitle">Panel</h2>
+          <button id="closePanelBtn" class="close-btn" type="button" aria-label="Close panel">✕</button>
+        </div>
+        <div id="panelBody" class="panel-body"></div>
+      </div>
+    </div>
+
+    <script src="js/level1.js"></script>
+  </body>
+</html>
