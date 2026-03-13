@@ -451,6 +451,10 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
       test: 'failed',
       deploy: 'pending',
     });
+
+    statusValue.textContent = '● TEST FAILED';
+    statusValue.classList.remove('status-success');
+    statusValue.classList.add('status-failed');
   }, elapsed + 120);
 });
 
