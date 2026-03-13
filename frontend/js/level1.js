@@ -35,38 +35,56 @@ const EXTRA_LOGS = [
   'Exit code: 1',
 ];
 
-const CODE_SNIPPET = [
-  'cartController.js',
-  '',
-  "const express = require('express')",
-  "const router = express.Router()",
-  "const _ = require('lodash')",
-  '',
-  'function calculateCartTotal(items){',
-  "  return _.sumBy(items,'price')",
-  '}',
-  '',
-  "router.get('/cart',(req,res)=>{",
-  '  const items=[',
-  "    {name:'Laptop',price:800},",
-  "    {name:'Mouse',price:20}",
-  '  ]',
-  '',
-  '  const total=calculateCartTotal(items)',
-  '',
-  '  res.json({',
-  '    items,',
-  '    total',
-  '  })',
-  '})',
-  '',
-  'module.exports=router',
-];
+const REPO_FILES = {
+  'package.json': `{
+  "name": "ecom-checkout",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}`,
+  'server.js': `const express = require("express")
+const cartController = require("./controllers/cartController")
+
+const app = express()
+
+app.use("/cart", cartController)
+
+app.listen(3000, () => {
+  console.log("Server running")
+})`,
+  'controllers/cartController.js': `const express = require("express")
+const router = express.Router()
+const _ = require("lodash")
+
+function calculateCartTotal(items){
+  return _.sumBy(items,"cost")
+}
+
+router.get("/",(req,res)=>{
+  const items=[
+    {name:"Laptop",price:800},
+    {name:"Mouse",price:20}
+  ]
+
+  const total = calculateCartTotal(items)
+
+  res.json({
+    items,
+    total
+  })
+})
+
+module.exports = router`,
+};
 
 const logOutput = document.getElementById('logOutput');
 const detailPanel = document.getElementById('detailPanel');
 const detailTitle = document.getElementById('detailTitle');
 const detailOutput = document.getElementById('detailOutput');
+const repoExplorer = document.getElementById('repoExplorer');
+const repoTree = document.getElementById('repoTree');
+const codeViewer = document.getElementById('codeViewer');
 const configTerminal = document.getElementById('configTerminal');
 const configOutput = document.getElementById('configOutput');
 const configForm = document.getElementById('configForm');
@@ -75,6 +93,9 @@ const statusValue = document.getElementById('statusValue');
 const resolveMessage = document.getElementById('resolveMessage');
 const systemClock = document.getElementById('systemClock');
 const pipelineProgress = document.getElementById('pipelineProgress');
+const briefingPanel = document.getElementById('briefingPanel');
+const levelDashboard = document.querySelector('.level1-dashboard');
+const startInvestigationBtn = document.getElementById('startInvestigationBtn');
 
 const logs = [...INITIAL_LOGS];
 
@@ -103,9 +124,77 @@ function showPanel(type) {
   detailPanel.hidden = type !== 'detail';
   configTerminal.hidden = type !== 'terminal';
 
+  if (type !== 'detail') {
+    repoExplorer.hidden = true;
+    detailOutput.hidden = false;
+  }
+
   if (type === 'terminal') {
     configInput.focus();
   }
+}
+
+function setActiveFile(path) {
+  const fileButtons = repoTree.querySelectorAll('button[data-path]');
+  fileButtons.forEach((button) => {
+    const isActive = button.dataset.path === path;
+    button.classList.toggle('primary', isActive);
+    button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+}
+
+function openFile(path) {
+  const contents = REPO_FILES[path];
+  if (!contents) {
+    return;
+  }
+
+  state.codeViewed = true;
+  detailTitle.textContent = `Source Review — ${path}`;
+  codeViewer.textContent = contents;
+  setActiveFile(path);
+}
+
+function renderRepoExplorer() {
+  repoTree.innerHTML = '';
+
+  const root = document.createElement('div');
+  root.textContent = 'repo/';
+  repoTree.appendChild(root);
+
+  const packageBtn = document.createElement('button');
+  packageBtn.type = 'button';
+  packageBtn.className = 'action-button';
+  packageBtn.dataset.path = 'package.json';
+  packageBtn.textContent = '├── package.json';
+
+  const serverBtn = document.createElement('button');
+  serverBtn.type = 'button';
+  serverBtn.className = 'action-button';
+  serverBtn.dataset.path = 'server.js';
+  serverBtn.textContent = '├── server.js';
+
+  const controllers = document.createElement('div');
+  controllers.textContent = '└── controllers';
+
+  const cartBtn = document.createElement('button');
+  cartBtn.type = 'button';
+  cartBtn.className = 'action-button';
+  cartBtn.dataset.path = 'controllers/cartController.js';
+  cartBtn.textContent = '    └── cartController.js';
+
+  [packageBtn, serverBtn, cartBtn].forEach((button) => {
+    button.style.display = 'block';
+    button.style.width = '100%';
+    button.style.textAlign = 'left';
+    button.style.margin = '0.2rem 0';
+    button.addEventListener('click', () => openFile(button.dataset.path));
+  });
+
+  repoTree.appendChild(packageBtn);
+  repoTree.appendChild(serverBtn);
+  repoTree.appendChild(controllers);
+  repoTree.appendChild(cartBtn);
 }
 
 document.getElementById('inspectBtn').addEventListener('click', () => {
@@ -115,14 +204,17 @@ document.getElementById('inspectBtn').addEventListener('click', () => {
   }
 
   detailTitle.textContent = 'Deep Build Trace';
+  detailOutput.hidden = false;
+  repoExplorer.hidden = true;
   detailOutput.textContent = EXTRA_LOGS.join('\n');
   showPanel('detail');
 });
 
 document.getElementById('reviewBtn').addEventListener('click', () => {
-  state.codeViewed = true;
   detailTitle.textContent = 'Source Review';
-  detailOutput.textContent = CODE_SNIPPET.join('\n');
+  detailOutput.hidden = true;
+  repoExplorer.hidden = false;
+  codeViewer.textContent = 'Select a file from the explorer to open it.';
   showPanel('detail');
 });
 
@@ -218,6 +310,14 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
   setTimeout(completeCase, 2800);
 });
 
-setClock();
+startInvestigationBtn.addEventListener('click', () => {
+  briefingPanel.hidden = true;
+  levelDashboard.hidden = false;
+  setClock();
+  renderLogs();
+  configInput.blur();
+});
+
+levelDashboard.hidden = true;
+renderRepoExplorer();
 setInterval(setClock, 1000);
-renderLogs();

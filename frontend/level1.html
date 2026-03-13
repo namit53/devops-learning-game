@@ -9,6 +9,19 @@
   <body class="level1-page">
     <div class="background-code" aria-hidden="true"></div>
 
+    <section class="detail-panel" id="briefingPanel">
+      <div class="panel-title">CASE 001 — MISSING DEPENDENCY</div>
+      <pre class="detail-output">Alert:
+Build pipeline failed during dependency installation.
+
+Your task:
+Investigate logs, review code,
+identify the issue, and restore the pipeline.</pre>
+      <div class="action-row">
+        <button type="button" class="action-button primary" id="startInvestigationBtn">START INVESTIGATION</button>
+      </div>
+    </section>
+
     <main class="level1-dashboard" aria-live="polite">
       <header class="level1-header">
         <div class="level1-project">PROJ: E-COM CHECKOUT</div>
@@ -34,6 +47,10 @@
 
       <section class="detail-panel" id="detailPanel" hidden>
         <div class="panel-title" id="detailTitle">Details</div>
+        <div id="repoExplorer" hidden>
+          <div class="config-output" id="repoTree" role="tree" aria-label="Repository file explorer"></div>
+          <pre class="detail-output" id="codeViewer">Select a file from the explorer to open it.</pre>
+        </div>
         <pre class="detail-output" id="detailOutput"></pre>
       </section>
 
