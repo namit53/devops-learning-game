@@ -3,34 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DCIB - Level 1 Investigation</title>
+    <title>DCIB - Case 001</title>
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body class="level-page">
-    <main class="jenkins-shell">
-      <header class="jenkins-topbar">
-        <p class="project-label">PROJ: E-COM CHECKOUT</p>
-        <p class="time-label">TIME: <span id="systemTime">--:--:--</span></p>
+    <main class="level-container">
+      <header class="level-header">
+        <h1>CASE 001 — The Missing Dependency</h1>
+        <p>Investigate the failed CI/CD run and restore deployment.</p>
       </header>
 
-      <section class="build-status failed" id="buildStatus">
-        <span class="status-dot" aria-hidden="true"></span>
-        <span id="statusText">STATUS: BUILD FAILED</span>
+      <section class="pipeline-board" aria-label="Pipeline status">
+        <div class="pipeline-stage success"><span class="dot"></span>Checkout ✔</div>
+        <div class="pipeline-stage failed"><span class="dot"></span>Build ❌</div>
+        <div class="pipeline-stage pending"><span class="dot"></span>Test ⏸</div>
+        <div class="pipeline-stage pending"><span class="dot"></span>Deploy ⏸</div>
       </section>
-
-      <section class="pipeline-board" id="pipelineBoard" aria-label="Pipeline stages"></section>
 
       <section class="level-terminal" aria-live="polite">
-        <pre id="pipelineLog"></pre>
+        <pre id="pipelineLog">Running CI/CD pipeline...
+
+Stage: Checkout
+Repository cloned successfully.
+
+Stage: Build
+Installing dependencies...
+
+Build failed.
+
+See logs for details.</pre>
       </section>
 
-      <p id="resolutionBanner" class="resolution-banner hidden">Returning to DCIB terminal...</p>
+      <p id="statusMessage" class="status-message">Action required: investigate Build stage failure.</p>
 
-      <section class="level-actions" aria-label="Investigation actions">
-        <button type="button" id="inspectLogsBtn">Inspect Logs</button>
-        <button type="button" id="reviewCodeBtn">Review Code</button>
-        <button type="button" id="editConfigBtn">Edit Config</button>
-        <button type="button" id="rerunJobBtn">Re-run Job</button>
+      <section class="level-actions" aria-label="Level actions">
+        <button id="inspectLogsBtn" type="button">Inspect Logs</button>
+        <button id="reviewCodeBtn" type="button">Review Code</button>
+        <button id="editConfigBtn" type="button">Edit Config</button>
+        <button id="rerunJobBtn" type="button">Re-run Job</button>
       </section>
     </main>
 

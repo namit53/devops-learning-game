@@ -1,51 +1,19 @@
 const pipelineStages = [
-  { name: "Checkout", status: "success", icon: "✔" },
-  { name: "Build", status: "failed", icon: "❌" },
-  { name: "Test", status: "pending", icon: "⏸" },
-  { name: "Deploy", status: "pending", icon: "⏸" },
+  { name: "Checkout", status: "success", symbol: "✔" },
+  { name: "Build", status: "failed", symbol: "❌" },
+  { name: "Test", status: "pending", symbol: "⏸" },
+  { name: "Deploy", status: "pending", symbol: "⏸" },
 ];
 
-let dependencyInstalled = false;
-let logsExpanded = false;
-let codeViewed = false;
+let expressAdded = false;
+const addedDependencies = new Set();
 
-const initialLogLines = [
-  "> Jenkins Build #402 initiated...",
-  "> Cloning repository...",
-  "> Installing dependencies...",
-  "> Running build script...",
-  "",
-  "> ERROR: Module 'lodash' not found in package.json",
-  "> Build step failed.",
-  "",
-  "> (System awaiting user input)",
-  "",
-  "> Fetching console logs...",
-  "",
-  "> ERROR: Module 'lodash' not found in package.json",
-  "> HINT: Check dependency configuration.",
-];
-
-const extendedLogLines = [
-  "",
-  "> npm run build",
-  "",
-  "> node server.js",
-  "",
-  "Error: Cannot find module 'lodash'",
-  "Require stack:",
-  "- /app/controllers/cartController.js",
-  "- /app/server.js",
-  "",
-  "Exit code: 1",
-];
-
-const board = document.getElementById("pipelineBoard");
-const logView = document.getElementById("pipelineLog");
-const buildStatus = document.getElementById("buildStatus");
-const statusText = document.getElementById("statusText");
-const systemTime = document.getElementById("systemTime");
-const resolutionBanner = document.getElementById("resolutionBanner");
+const pipelineBoard = document.querySelector(".pipeline-board");
+const pipelineLog = document.getElementById("pipelineLog");
+const statusMessage = document.getElementById("statusMessage");
+const overlay = document.getElementById("overlay");
+const panelTitle = document.getElementById("panelTitle");
+const panelBody = document.getElementById("panelBody");
 
 const inspectLogsBtn = document.getElementById("inspectLogsBtn");
 const reviewCodeBtn = document.getElementById("reviewCodeBtn");
@@ -97,6 +65,20 @@ function openPanel(title, body) {
   panelTitle.textContent = title;
   panelBody.innerHTML = "";
   panelBody.appendChild(body);
+const closePanelBtn = document.getElementById("closePanelBtn");
+
+  pipelineStages.forEach((stage) => {
+    const stageElement = document.createElement("div");
+    stageElement.className = `pipeline-stage ${stage.status}`;
+    stageElement.innerHTML = `<span class="dot"></span>${stage.name} ${stage.symbol}`;
+    pipelineBoard.appendChild(stageElement);
+  });
+}
+
+function openPanel(title, contentElement) {
+  panelTitle.textContent = title;
+  panelBody.innerHTML = "";
+  panelBody.appendChild(contentElement);
   overlay.classList.remove("hidden");
   overlay.setAttribute("aria-hidden", "false");
 }
@@ -106,197 +88,173 @@ function closePanel() {
   overlay.setAttribute("aria-hidden", "true");
 }
 
-function createLogsPanel() {
+function buildLogsContent() {
   const wrapper = document.createElement("div");
   wrapper.className = "terminal-block";
 
-  const lines = [
-    "npm run build",
+  const logLines = [
+    "npm install",
     "",
-    "node server.js",
+    "added 120 packages",
     "",
-    "Error: Cannot find module 'lodash'",
+    "> node server.js",
+    "",
+    "Error: Cannot find module 'express'",
     "Require stack:",
-    "- /app/controllers/cartController.js",
     "- /app/server.js",
     "",
-    "Exit code: 1",
+    "Build step failed.",
   ];
 
-  lines.forEach((line) => {
-    const p = document.createElement("p");
-    p.className = "terminal-line";
-    p.textContent = line;
+  logLines.forEach((line) => {
+    const lineElement = document.createElement("p");
+    lineElement.className = "terminal-line";
+    lineElement.textContent = line;
 
-    if (line.includes("Cannot find module 'lodash'")) {
-      p.classList.add("highlight-error");
+    if (line.includes("Cannot find module 'express'")) {
+      lineElement.classList.add("highlight-error");
     }
 
-    wrapper.appendChild(p);
+    wrapper.appendChild(lineElement);
   });
 
   return wrapper;
 }
 
-function createCodePanel() {
+function buildCodeContent() {
   const wrapper = document.createElement("div");
   wrapper.className = "terminal-block";
 
   wrapper.innerHTML = `
-<p class="terminal-line">cartController.js</p>
-<p class="terminal-line"></p>
 <p class="terminal-line">const express = require('express')</p>
-<p class="terminal-line">const router = express.Router()</p>
-<p class="terminal-line clue-line">const _ = require('lodash')</p>
+<p class="terminal-line">const app = express()</p>
 <p class="terminal-line"></p>
-<p class="terminal-line">function calculateCartTotal(items){</p>
-<p class="terminal-line">  return _.sumBy(items,'price')</p>
-<p class="terminal-line">}</p>
-<p class="terminal-line"></p>
-<p class="terminal-line">router.get('/cart',(req,res)=&gt;{</p>
-<p class="terminal-line">  const items=[</p>
-<p class="terminal-line">    {name:'Laptop',price:800},</p>
-<p class="terminal-line">    {name:'Mouse',price:20}</p>
-<p class="terminal-line">  ]</p>
-<p class="terminal-line"></p>
-<p class="terminal-line">  const total=calculateCartTotal(items)</p>
-<p class="terminal-line"></p>
-<p class="terminal-line">  res.json({</p>
-<p class="terminal-line">    items,</p>
-<p class="terminal-line">    total</p>
-<p class="terminal-line">  })</p>
+<p class="terminal-line">app.get('/', (req,res)=&gt;{</p>
+<p class="terminal-line">  res.send("Server running")</p>
 <p class="terminal-line">})</p>
 <p class="terminal-line"></p>
-<p class="terminal-line">module.exports=router</p>
+<p class="terminal-line">app.listen(3000)</p>
   `;
 
-  codeViewed = true;
   return wrapper;
 }
 
-function normalizeCommand(text) {
-  return text.trim().replace(/\s+/g, " ").toLowerCase();
-}
+function getPackageJsonText() {
+  const dependencies = {
+    axios: "^1.0.0",
+    lodash: "^4.17.21",
+  };
 
-function createConfigTerminalPanel() {
-  const container = document.createElement("div");
-  container.className = "config-terminal";
-
-  const output = document.createElement("div");
-  output.className = "config-output";
-
-  const row = document.createElement("form");
-  row.className = "config-input-row";
-
-  const prompt = document.createElement("span");
-  prompt.className = "config-prompt";
-  prompt.textContent = "config@dcib-build:~$";
-
-  const input = document.createElement("input");
-  input.className = "config-input";
-  input.type = "text";
-  input.autocomplete = "off";
-  input.placeholder = "Type command...";
-
-  function printLine(text, className = "") {
-    const line = document.createElement("p");
-    line.className = `terminal-line ${className}`.trim();
-    line.textContent = text;
-    output.appendChild(line);
-    output.scrollTop = output.scrollHeight;
-  }
-
-  printLine("Use npm install command to patch missing dependency.");
-  printLine("Accepted: npm install lodash OR npm install lodash --save");
-
-  row.addEventListener("submit", (event) => {
-    event.preventDefault();
-
-    const raw = input.value;
-    if (!raw.trim()) {
-      return;
-    }
-
-    printLine(`config@dcib-build:~$ ${raw}`);
-    const normalized = normalizeCommand(raw);
-
-    if (normalized === "npm install lodash" || normalized === "npm install lodash --save") {
-      dependencyInstalled = true;
-      printLine("> installing lodash...");
-      printLine("> dependency added to package.json", "success-line");
-    } else {
-      printLine("Command failed.", "error-line");
-      printLine("Dependency still missing.", "error-line");
-    }
-
-    input.value = "";
+  addedDependencies.forEach((dependency) => {
+    dependencies[dependency] = "^latest";
   });
 
-  row.appendChild(prompt);
-  row.appendChild(input);
+  return JSON.stringify(
+    {
+      name: "dcib-service",
+      version: "1.0.0",
+      dependencies,
+    },
+    null,
+    2,
+  );
+}
 
-  container.appendChild(output);
-  container.appendChild(row);
+function buildConfigContent() {
+  const wrapper = document.createElement("div");
+  const codeBlock = document.createElement("pre");
+  codeBlock.className = "terminal-block config-view";
+  codeBlock.textContent = getPackageJsonText();
 
-  setTimeout(() => input.focus(), 0);
+  const controls = document.createElement("div");
+  controls.className = "config-controls";
 
-  return container;
+  const dependencySelect = document.createElement("select");
+  dependencySelect.innerHTML = `
+    <option value="express">express</option>
+    <option value="mongoose">mongoose</option>
+    <option value="cors">cors</option>
+    <option value="nodemon">nodemon</option>
+  `;
+
+  const addButton = document.createElement("button");
+  addButton.type = "button";
+  addButton.textContent = "Add Dependency";
+
+  const feedback = document.createElement("p");
+  feedback.className = "config-feedback";
+
+  addButton.addEventListener("click", () => {
+    const selectedDependency = dependencySelect.value;
+    addedDependencies.add(selectedDependency);
+
+    if (selectedDependency === "express") {
+      expressAdded = true;
+      feedback.textContent = "express added. Re-run the job to validate the fix.";
+      feedback.className = "config-feedback success";
+    } else {
+      feedback.textContent = "Build still failing. Required module is still missing.";
+      feedback.className = "config-feedback error";
+    }
+
+    codeBlock.textContent = getPackageJsonText();
+  });
+
+  controls.appendChild(dependencySelect);
+  controls.appendChild(addButton);
+
+  wrapper.appendChild(codeBlock);
+  wrapper.appendChild(controls);
+  wrapper.appendChild(feedback);
+
+  return wrapper;
+}
+
+function setInitialLog() {
+  pipelineLog.textContent = `Running CI/CD pipeline...\n\nStage: Checkout\nRepository cloned successfully.\n\nStage: Build\nInstalling dependencies...\n\nBuild failed.\n\nSee logs for details.`;
+}
+
+function setFailedLog() {
+  pipelineLog.textContent = `Running CI/CD pipeline...\n\nStage: Checkout\nRepository cloned successfully.\n\nStage: Build\nInstalling dependencies...\n\nError: Cannot find module 'express'\n\nBuild failed.`;
+}
+
+function setSuccessLog() {
+  pipelineLog.textContent = `Running CI/CD pipeline...\n\nStage: Checkout\nRepository cloned successfully.\n\nStage: Build\nDependencies installed successfully.\n\nStage: Test\nAll tests passed.\n\nStage: Deploy\nDeployment completed.`;
 }
 
 inspectLogsBtn.addEventListener("click", () => {
-  if (!logsExpanded) {
-    appendLogs(extendedLogLines);
-    logsExpanded = true;
-  }
-
-  openPanel("Console Logs", createLogsPanel());
+  openPanel("Build Logs", buildLogsContent());
 });
 
 reviewCodeBtn.addEventListener("click", () => {
-  openPanel("Source Review", createCodePanel());
+  openPanel("server.js", buildCodeContent());
 });
 
 editConfigBtn.addEventListener("click", () => {
-  openPanel("Config Terminal", createConfigTerminalPanel());
+  openPanel("package.json", buildConfigContent());
 });
 
 rerunJobBtn.addEventListener("click", () => {
-  appendLogs(["", "> Re-running pipeline...", "> Installing dependencies...", "> Running build script..."]);
-
-  if (!dependencyInstalled) {
-    pipelineStages[1] = { name: "Build", status: "failed", icon: "❌" };
-    pipelineStages[2] = { name: "Test", status: "pending", icon: "⏸" };
-    pipelineStages[3] = { name: "Deploy", status: "pending", icon: "⏸" };
-
+  if (!expressAdded) {
+    pipelineStages[1] = { name: "Build", status: "failed", symbol: "❌" };
+    pipelineStages[2] = { name: "Test", status: "pending", symbol: "⏸" };
+    pipelineStages[3] = { name: "Deploy", status: "pending", symbol: "⏸" };
     renderPipeline();
-    setBuildFailedStatus();
-    appendLogs([
-      "> ERROR: Module 'lodash' not found in package.json",
-      "> Build failed again.",
-    ]);
+    setFailedLog();
+    statusMessage.textContent = "Build failed again. Investigate logs to identify the missing dependency.";
+    statusMessage.className = "status-message error";
     return;
   }
 
-  pipelineStages[0] = { name: "Checkout", status: "success", icon: "✔" };
-  pipelineStages[1] = { name: "Build", status: "success", icon: "✔" };
-  pipelineStages[2] = { name: "Test", status: "success", icon: "✔" };
-  pipelineStages[3] = { name: "Deploy", status: "success", icon: "✔" };
+  pipelineStages[0] = { name: "Checkout", status: "success", symbol: "✔" };
+  pipelineStages[1] = { name: "Build", status: "success", symbol: "✔" };
+  pipelineStages[2] = { name: "Test", status: "success", symbol: "✔" };
+  pipelineStages[3] = { name: "Deploy", status: "success", symbol: "✔" };
 
   renderPipeline();
-  setBuildSuccessStatus();
-
-  appendLogs([
-    "> lodash installed successfully",
-    "> Build completed",
-    "> Running tests...",
-    "> Tests passed",
-    "> Deploying application...",
-    "",
-    "SUCCESS: Build pipeline completed.",
-    "CASE 001 RESOLVED.",
-  ]);
-
-  resolutionBanner.classList.remove("hidden");
+  setSuccessLog();
+  statusMessage.textContent = "Build successful. Missing dependency resolved. CASE 001 RESOLVED.";
+  statusMessage.className = "status-message success";
 
   setTimeout(() => {
     window.location.href = "terminal.html";
@@ -317,7 +275,4 @@ document.addEventListener("keydown", (event) => {
 });
 
 renderPipeline();
-setBuildFailedStatus();
-setLogs(initialLogLines);
-tickTime();
-setInterval(tickTime, 1000);
+setInitialLog();
