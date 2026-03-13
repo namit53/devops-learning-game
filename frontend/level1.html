@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DCIB Case 001 - Level 1</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="level1-page">
+    <div class="background-code" aria-hidden="true"></div>
+
+    <main class="level1-dashboard" aria-live="polite">
+      <header class="level1-header">
+        <div class="level1-project">PROJ: E-COM CHECKOUT</div>
+        <div class="level1-clock" id="systemClock">--:--:--</div>
+      </header>
+
+      <section class="level1-status" id="statusSection">
+        <span class="status-label">STATUS:</span>
+        <span class="status-value status-failed" id="statusValue">● BUILD FAILED</span>
+      </section>
+
+      <section class="pipeline-progress" id="pipelineProgress" hidden>
+        <div class="pipeline-step" data-step="checkout">Checkout</div>
+        <div class="pipeline-step" data-step="build">Build</div>
+        <div class="pipeline-step" data-step="test">Test</div>
+        <div class="pipeline-step" data-step="deploy">Deploy</div>
+      </section>
+
+      <section class="log-panel" id="logPanel">
+        <div class="panel-title">Build Console</div>
+        <pre class="log-output" id="logOutput"></pre>
+      </section>
+
+      <section class="detail-panel" id="detailPanel" hidden>
+        <div class="panel-title" id="detailTitle">Details</div>
+        <pre class="detail-output" id="detailOutput"></pre>
+      </section>
+
+      <section class="config-terminal" id="configTerminal" hidden>
+        <div class="panel-title">Config Terminal</div>
+        <div class="config-output" id="configOutput"></div>
+        <form class="config-form" id="configForm" autocomplete="off">
+          <label class="config-prompt" for="configInput">config@dcib-build:~$</label>
+          <input id="configInput" class="config-input" type="text" spellcheck="false" />
+        </form>
+      </section>
+
+      <p class="resolve-message" id="resolveMessage" hidden>Returning to DCIB terminal...</p>
+
+      <section class="action-row">
+        <button type="button" class="action-button" id="inspectBtn">Inspect Logs</button>
+        <button type="button" class="action-button" id="reviewBtn">Review Code</button>
+        <button type="button" class="action-button" id="configBtn">Edit Config</button>
+        <button type="button" class="action-button primary" id="rerunBtn">Re-run Job</button>
+      </section>
+    </main>
+
+    <script src="js/level1.js"></script>
+  </body>
+</html>
