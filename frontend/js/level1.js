@@ -1,6 +1,7 @@
 const state = {
   dependencyInstalled: false,
   logsExpanded: false,
+  testLogsExpanded: false,
   codeViewed: false,
   resolved: false,
   activeFilePath: null,
@@ -35,6 +36,48 @@ const EXTRA_LOGS = [
   '- /app/server.js',
   '',
   'Exit code: 1',
+];
+
+const TEST_FAILURE_LOGS = [
+  '> Expanding console output...',
+  '',
+  '> npm test',
+  '',
+  'FAIL  tests/cartTotalCalculation.test.js',
+  '  cart total calculation',
+  '    ✕ calculates total price correctly (8 ms)',
+  '',
+  '  ● cart total calculation',
+  '',
+  '    expect(received).toBe(expected)',
+  '',
+  '    Expected: 820',
+  '    Received: 0',
+  '',
+  '      9 | const total = calculateCartTotal(items)',
+  '     10 |',
+  '  > 11 | expect(total).toBe(820)',
+  '        |               ^',
+  '     12 | })',
+  '',
+  'Test data used:',
+  '[',
+  "  { name: 'Laptop', price: 800 },",
+  "  { name: 'Mouse', price: 20 }",
+  ']',
+  '',
+  'Stack trace:',
+  '  at calculateCartTotal (controllers/cartController.js:6:12)',
+  '  at Object.<anonymous> (tests/cartTotalCalculation.test.js:9:17)',
+  '',
+  'Note: Test input contains numeric "price" values.',
+  '',
+  'Test Suites: 1 failed, 1 total',
+  'Tests:       1 failed, 1 total',
+  'Time:        0.52 s',
+  '',
+  'ERROR: Unit tests failed.',
+  'Pipeline halted at stage: TEST',
 ];
 
 const files = {
@@ -288,7 +331,26 @@ function setPipelineStatus(steps) {
   });
 }
 
+function isTestStageFailed() {
+  const testStep = pipelineProgress.querySelector('[data-step="test"]');
+  return Boolean(testStep && testStep.classList.contains('failed'));
+}
+
 document.getElementById('inspectBtn').addEventListener('click', () => {
+  if (isTestStageFailed()) {
+    if (!state.testLogsExpanded) {
+      appendLogs(['', ...TEST_FAILURE_LOGS]);
+      state.testLogsExpanded = true;
+    }
+
+    detailTitle.textContent = 'Test Failure Trace';
+    detailOutput.hidden = false;
+    repoExplorer.hidden = true;
+    detailOutput.textContent = TEST_FAILURE_LOGS.join('\n');
+    showPanel('detail');
+    return;
+  }
+
   if (!state.logsExpanded) {
     appendLogs(['', ...EXTRA_LOGS]);
     state.logsExpanded = true;
