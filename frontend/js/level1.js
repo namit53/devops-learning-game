@@ -7,6 +7,9 @@ const state = {
   activeFilePath: null,
   isEditingCode: false,
   deploySequenceStarted: false,
+  deployFailed: false,
+  deployLogsExpanded: false,
+  portFreed: false,
 };
 
 const INITIAL_LOGS = [
@@ -27,16 +30,29 @@ const INITIAL_LOGS = [
 ];
 
 const EXTRA_LOGS = [
-  'npm run build',
-  '',
-  'node server.js',
-  '',
-  "Error: Cannot find module 'lodash'",
-  'Require stack:',
-  '- /app/controllers/cartController.js',
-  '- /app/server.js',
-  '',
-  'Exit code: 1',
+  '[12:01:14] Started by user admin',
+  '[12:01:15] Running in Workspace /var/jenkins_home/workspace/prod-deploy',
+  '[12:01:16] [CHECKOUT] Fetching changes from origin/main...',
+  '[12:01:18] [CHECKOUT] SUCCESS',
+  "[12:01:19] [BUILD] Running 'npm ci'...",
+  '[12:01:25] [BUILD] Compiling assets...',
+  '[12:01:28] [BUILD] SUCCESS',
+  '[12:01:29] [TEST] Executing Jest test suite...',
+  '[12:01:34] [TEST] PASS: 42 suites run, 0 failures.',
+  '[12:01:35] [TEST] SUCCESS',
+  '[12:01:36] [DEPLOY] Connecting to production server...',
+  '[12:01:37] [DEPLOY] Stopping old container instance...',
+  '[12:01:38] [DEPLOY] Starting new container instance on port 8080...',
+  '[12:01:39] [ERROR] node:events:491',
+  "[12:01:39] [ERROR]       throw er; // Unhandled 'error' event",
+  '[12:01:39] [ERROR]       ^',
+  '[12:01:39] [ERROR] Error: listen EADDRINUSE: address already in use 0.0.0.0:8080',
+  '[12:01:39] [ERROR]     at Server.setupListenHandle [as _listen2] (node:net:1446:16)',
+  '[12:01:39] [ERROR]     at listenInCluster (node:net:1494:12)',
+  '[12:01:39] [ERROR]     at Server.listen (node:net:1582:7)',
+  '[12:01:40] [FATAL] Deployment script exited with code 1',
+  "[12:01:40] Build step 'Execute shell' marked build as failure",
+  '[12:01:40] Finished: FAILURE',
 ];
 
 const TEST_FAILURE_LOGS = [
@@ -382,12 +398,27 @@ function runDeployFailureSequence() {
         statusValue.textContent = '● DEPLOY FAILED';
         statusValue.classList.remove('status-success');
         statusValue.classList.add('status-failed');
+        state.deployFailed = true;
       }
     }, elapsed);
   });
 }
 
 document.getElementById('inspectBtn').addEventListener('click', () => {
+  if (state.deployFailed) {
+    if (!state.deployLogsExpanded) {
+      appendLogs(['', ...EXTRA_LOGS]);
+      state.deployLogsExpanded = true;
+    }
+
+    detailTitle.textContent = 'Deployment Failure Trace';
+    detailOutput.hidden = false;
+    repoExplorer.hidden = true;
+    detailOutput.textContent = EXTRA_LOGS.join('\n');
+    showPanel('detail');
+    return;
+  }
+
   if (isTestStageFailed()) {
     if (!state.testLogsExpanded) {
       appendLogs(['', ...TEST_FAILURE_LOGS]);
@@ -403,14 +434,14 @@ document.getElementById('inspectBtn').addEventListener('click', () => {
   }
 
   if (!state.logsExpanded) {
-    appendLogs(['', ...EXTRA_LOGS]);
+    appendLogs(['', '> Inspecting recent logs...', '[INFO] Awaiting deployment-stage diagnostics.']);
     state.logsExpanded = true;
   }
 
-  detailTitle.textContent = 'Deep Build Trace';
+  detailTitle.textContent = 'Build Console Snapshot';
   detailOutput.hidden = false;
   repoExplorer.hidden = true;
-  detailOutput.textContent = EXTRA_LOGS.join('\n');
+  detailOutput.textContent = 'No expanded failure trace yet. Run the pipeline to collect deploy-stage logs.';
   showPanel('detail');
 });
 
@@ -460,7 +491,7 @@ saveCodeBtn.addEventListener('click', () => {
 document.getElementById('configBtn').addEventListener('click', () => {
   showPanel('terminal');
   if (!configOutput.textContent.trim()) {
-    configOutput.textContent = 'Type npm install command to fix dependencies.\n';
+    configOutput.textContent = 'Run diagnostics for port 8080 before re-deploying.\n';
   }
 });
 
@@ -471,15 +502,17 @@ configForm.addEventListener('submit', (event) => {
     return;
   }
 
-  const isValidCommand = /^npm\s+install\s+lodash(\s+--save)?$/i.test(command);
-
   configOutput.textContent += `config@dcib-build:~$ ${command}\n`;
 
-  if (isValidCommand) {
-    state.dependencyInstalled = true;
-    configOutput.textContent += '> installing lodash...\n> dependency added to package.json\n';
+  if (command === 'lsof -i :8080') {
+    configOutput.textContent += 'COMMAND   PID   USER   FD   TYPE DEVICE SIZE/OFF NODE NAME\n';
+    configOutput.textContent += 'node      4052  admin  22u  IPv4 0x3a21      0t0  TCP *:8080 (LISTEN)\n';
+  } else if (command === 'kill -9 4052') {
+    state.portFreed = true;
+    configOutput.textContent += 'Process 4052 terminated.\n';
+    configOutput.textContent += 'Port 8080 is now free.\n';
   } else {
-    configOutput.textContent += 'Command failed.\nDependency still missing.\n';
+    configOutput.textContent += 'Command not recognized in this simulation.\n';
   }
 
   configInput.value = '';
@@ -508,14 +541,10 @@ function runSuccessAnimation() {
 
 function completeCase() {
   state.resolved = true;
-  statusValue.textContent = '● BUILD PASSED';
+  statusValue.textContent = 'APP DEPLOYED';
   statusValue.classList.remove('status-failed');
   statusValue.classList.add('status-success');
   resolveMessage.hidden = false;
-
-  setTimeout(() => {
-    window.location.href = 'terminal.html';
-  }, 3000);
 }
 
 document.getElementById('rerunBtn').addEventListener('click', () => {
@@ -523,7 +552,63 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
     return;
   }
 
+  if (state.portFreed) {
+    const successLines = [
+      { text: '', delay: 120 },
+      { text: '> Re-running pipeline...', delay: 300 },
+      { text: '', delay: 180 },
+      { text: '> Stage: Checkout', delay: 420 },
+      { text: '✔ Repository cloned', delay: 380 },
+      { text: '', delay: 180 },
+      { text: '> Stage: Build', delay: 420 },
+      { text: '✔ Build completed', delay: 380 },
+      { text: '', delay: 180 },
+      { text: '> Stage: Test', delay: 420 },
+      { text: '✔ All tests passed', delay: 380 },
+      { text: '', delay: 180 },
+      { text: '> Stage: Deploy', delay: 420 },
+      { text: '[INFO] Starting application...', delay: 380 },
+      { text: '[INFO] Binding to port 8080...', delay: 380 },
+      { text: '', delay: 180 },
+      { text: '✔ Application deployed successfully', delay: 360 },
+      { text: '✔ Server running on port 8080', delay: 360 },
+      { text: '', delay: 180 },
+      { text: 'CASE 001 SOLVED.', delay: 360 },
+      { text: '', delay: 120 },
+      { text: 'The system has been successfully restored.', delay: 360 },
+    ];
+
+    let elapsed = 0;
+
+    successLines.forEach((entry, index) => {
+      elapsed += entry.delay;
+
+      setTimeout(() => {
+        appendLog(entry.text);
+
+        if (index === successLines.length - 1) {
+          state.deployFailed = false;
+          setPipelineStatus({
+            checkout: 'done',
+            build: 'done',
+            test: 'done',
+            deploy: 'done',
+          });
+
+          statusValue.textContent = 'APP DEPLOYED';
+          statusValue.classList.remove('status-failed');
+          statusValue.classList.add('status-success');
+          runSuccessAnimation();
+          completeCase();
+        }
+      }, elapsed);
+    });
+
+    return;
+  }
+
   state.deploySequenceStarted = false;
+  state.deployFailed = false;
 
   const bugFixed = isCartTotalBugFixed();
   const failureTriggerLine = '✖ cartTotalCalculation.test.js FAILED';
