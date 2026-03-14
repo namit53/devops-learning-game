@@ -95,8 +95,10 @@ const app = express()
 
 app.use("/cart", cartController)
 
-app.listen(3000, () => {
-  console.log("Server running")
+const PORT = 8080
+
+app.listen(PORT, () => {
+  console.log(\`Server running on port ${PORT}\`)
 })`,
   'controllers/cartController.js': `const express = require("express")
 const router = express.Router()
@@ -480,6 +482,8 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
   const bugFixed = isCartTotalBugFixed();
   const failureTriggerLine = '✖ cartTotalCalculation.test.js FAILED';
   const successTriggerLine = '✔ All unit tests passed';
+  const deployTriggerLine = '> Stage: Deploy';
+  const deployFailureLine = 'Deployment failed.';
   const streamedLines = bugFixed
     ? [
         { text: '', delay: 120 },
@@ -487,9 +491,6 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
         { text: '', delay: 200 },
         { text: '> Stage: Checkout', delay: 500 },
         { text: '✔ Repository cloned', delay: 600 },
-        { text: '', delay: 250 },
-        { text: '> Stage: Install Dependencies', delay: 500 },
-        { text: '✔ lodash installed successfully', delay: 600 },
         { text: '', delay: 250 },
         { text: '> Stage: Build', delay: 500 },
         { text: '✔ Build completed', delay: 600 },
@@ -507,9 +508,17 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
         { text: '', delay: 200 },
         { text: successTriggerLine, delay: 300 },
         { text: '', delay: 200 },
-        { text: '✔ Unit tests passed successfully.', delay: 300 },
+        { text: '✔ Unit tests passed successfully.', delay: 250 },
         { text: '', delay: 200 },
-        { text: 'Pipeline ready for deployment stage.', delay: 200 },
+        { text: deployTriggerLine, delay: 350 },
+        { text: '', delay: 200 },
+        { text: '[INFO] Starting application...', delay: 350 },
+        { text: '[INFO] Binding to port 8080...', delay: 350 },
+        { text: '', delay: 200 },
+        { text: '[ERROR] listen EADDRINUSE: address already in use 0.0.0.0:8080', delay: 1000 },
+        { text: '[FATAL] Existing process blocking deployment.', delay: 350 },
+        { text: '', delay: 200 },
+        { text: deployFailureLine, delay: 250 },
       ]
     : [
         { text: '', delay: 120 },
@@ -517,9 +526,6 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
         { text: '', delay: 200 },
         { text: '> Stage: Checkout', delay: 500 },
         { text: '✔ Repository cloned', delay: 600 },
-        { text: '', delay: 250 },
-        { text: '> Stage: Install Dependencies', delay: 500 },
-        { text: '✔ lodash installed successfully', delay: 600 },
         { text: '', delay: 250 },
         { text: '> Stage: Build', delay: 500 },
         { text: '✔ Build completed', delay: 600 },
@@ -564,9 +570,31 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
           deploy: 'pending',
         });
 
-        statusValue.textContent = 'TESTS PASSED';
+        statusValue.textContent = '● TESTS PASSED';
         statusValue.classList.remove('status-failed');
         statusValue.classList.add('status-success');
+      }
+
+      if (entry.text === deployTriggerLine) {
+        setPipelineStatus({
+          checkout: 'done',
+          build: 'done',
+          test: 'done',
+          deploy: 'pending',
+        });
+      }
+
+      if (entry.text === deployFailureLine) {
+        setPipelineStatus({
+          checkout: 'done',
+          build: 'done',
+          test: 'done',
+          deploy: 'failed',
+        });
+
+        statusValue.textContent = '● DEPLOY FAILED';
+        statusValue.classList.remove('status-success');
+        statusValue.classList.add('status-failed');
       }
     }, elapsed);
   });
