@@ -10,6 +10,7 @@ const state = {
   deployFailed: false,
   deployLogsExpanded: false,
   portFreed: false,
+  terminalReturnScheduled: false,
 };
 
 const INITIAL_LOGS = [
@@ -540,11 +541,20 @@ function runSuccessAnimation() {
 }
 
 function completeCase() {
+  if (state.terminalReturnScheduled) {
+    return;
+  }
+
   state.resolved = true;
+  state.terminalReturnScheduled = true;
   statusValue.textContent = 'APP DEPLOYED';
   statusValue.classList.remove('status-failed');
   statusValue.classList.add('status-success');
   resolveMessage.hidden = false;
+
+  setTimeout(() => {
+    window.location.href = 'terminal.html';
+  }, 2200);
 }
 
 document.getElementById('rerunBtn').addEventListener('click', () => {
