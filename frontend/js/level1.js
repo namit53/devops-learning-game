@@ -336,6 +336,11 @@ function isTestStageFailed() {
   return Boolean(testStep && testStep.classList.contains('failed'));
 }
 
+function isCartTotalBugFixed() {
+  const cartControllerContents = files['controllers/cartController.js'] || '';
+  return /_\.sumBy\(\s*items\s*,\s*['"]price['"]\s*\)/.test(cartControllerContents);
+}
+
 document.getElementById('inspectBtn').addEventListener('click', () => {
   if (isTestStageFailed()) {
     if (!state.testLogsExpanded) {
@@ -472,33 +477,63 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
     return;
   }
 
+  const bugFixed = isCartTotalBugFixed();
   const failureTriggerLine = '✖ cartTotalCalculation.test.js FAILED';
-  const streamedLines = [
-    { text: '', delay: 120 },
-    { text: '> Re-running pipeline...', delay: 350 },
-    { text: '', delay: 200 },
-    { text: '> Stage: Checkout', delay: 500 },
-    { text: '✔ Repository cloned', delay: 600 },
-    { text: '', delay: 250 },
-    { text: '> Stage: Install Dependencies', delay: 500 },
-    { text: '✔ lodash installed successfully', delay: 600 },
-    { text: '', delay: 250 },
-    { text: '> Stage: Build', delay: 500 },
-    { text: '✔ Build completed', delay: 600 },
-    { text: '', delay: 250 },
-    { text: '> Stage: Test', delay: 400 },
-    { text: 'Running unit tests...', delay: 1700 },
-    { text: '', delay: 300 },
-    { text: '> Stage: Test', delay: 300 },
-    { text: 'Running unit tests...', delay: 300 },
-    { text: '', delay: 300 },
-    { text: failureTriggerLine, delay: 350 },
-    { text: '', delay: 200 },
-    { text: 'Expected: 820', delay: 200 },
-    { text: 'Received: 0', delay: 350 },
-    { text: '', delay: 200 },
-    { text: 'Test suite failed.', delay: 100 },
-  ];
+  const successTriggerLine = '✔ All unit tests passed';
+  const streamedLines = bugFixed
+    ? [
+        { text: '', delay: 120 },
+        { text: '> Re-running pipeline...', delay: 350 },
+        { text: '', delay: 200 },
+        { text: '> Stage: Checkout', delay: 500 },
+        { text: '✔ Repository cloned', delay: 600 },
+        { text: '', delay: 250 },
+        { text: '> Stage: Install Dependencies', delay: 500 },
+        { text: '✔ lodash installed successfully', delay: 600 },
+        { text: '', delay: 250 },
+        { text: '> Stage: Build', delay: 500 },
+        { text: '✔ Build completed', delay: 600 },
+        { text: '', delay: 250 },
+        { text: '> Stage: Test', delay: 500 },
+        { text: 'Running unit tests...', delay: 1000 },
+        { text: '', delay: 200 },
+        { text: 'PASS  tests/cartTotalCalculation.test.js', delay: 400 },
+        { text: '  cart total calculation', delay: 250 },
+        { text: '    ✓ calculates total price correctly (5 ms)', delay: 250 },
+        { text: '', delay: 200 },
+        { text: 'Test Suites: 1 passed, 1 total', delay: 250 },
+        { text: 'Tests:       1 passed, 1 total', delay: 250 },
+        { text: 'Time:        0.45 s', delay: 250 },
+        { text: '', delay: 200 },
+        { text: successTriggerLine, delay: 300 },
+        { text: '', delay: 200 },
+        { text: '✔ Unit tests passed successfully.', delay: 300 },
+        { text: '', delay: 200 },
+        { text: 'Pipeline ready for deployment stage.', delay: 200 },
+      ]
+    : [
+        { text: '', delay: 120 },
+        { text: '> Re-running pipeline...', delay: 350 },
+        { text: '', delay: 200 },
+        { text: '> Stage: Checkout', delay: 500 },
+        { text: '✔ Repository cloned', delay: 600 },
+        { text: '', delay: 250 },
+        { text: '> Stage: Install Dependencies', delay: 500 },
+        { text: '✔ lodash installed successfully', delay: 600 },
+        { text: '', delay: 250 },
+        { text: '> Stage: Build', delay: 500 },
+        { text: '✔ Build completed', delay: 600 },
+        { text: '', delay: 250 },
+        { text: '> Stage: Test', delay: 400 },
+        { text: 'Running unit tests...', delay: 1700 },
+        { text: '', delay: 300 },
+        { text: failureTriggerLine, delay: 350 },
+        { text: '', delay: 200 },
+        { text: 'Expected: 820', delay: 200 },
+        { text: 'Received: 0', delay: 350 },
+        { text: '', delay: 200 },
+        { text: 'Test suite failed.', delay: 100 },
+      ];
 
   let elapsed = 0;
 
@@ -519,6 +554,19 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
         statusValue.textContent = '● TEST FAILED';
         statusValue.classList.remove('status-success');
         statusValue.classList.add('status-failed');
+      }
+
+      if (entry.text === successTriggerLine) {
+        setPipelineStatus({
+          checkout: 'done',
+          build: 'done',
+          test: 'done',
+          deploy: 'pending',
+        });
+
+        statusValue.textContent = 'TESTS PASSED';
+        statusValue.classList.remove('status-failed');
+        statusValue.classList.add('status-success');
       }
     }, elapsed);
   });
