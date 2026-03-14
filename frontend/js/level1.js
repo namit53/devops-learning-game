@@ -6,6 +6,7 @@ const state = {
   resolved: false,
   activeFilePath: null,
   isEditingCode: false,
+  deploySequenceStarted: false,
 };
 
 const INITIAL_LOGS = [
@@ -95,8 +96,10 @@ const app = express()
 
 app.use("/cart", cartController)
 
-app.listen(3000, () => {
-  console.log("Server running")
+const PORT = 8080
+
+app.listen(PORT, () => {
+  console.log(\`Server running on port \${PORT}\`)
 })`,
   'controllers/cartController.js': `const express = require("express")
 const router = express.Router()
@@ -341,6 +344,49 @@ function isCartTotalBugFixed() {
   return /_\.sumBy\(\s*items\s*,\s*['"]price['"]\s*\)/.test(cartControllerContents);
 }
 
+function runDeployFailureSequence() {
+  if (state.deploySequenceStarted) {
+    return;
+  }
+
+  state.deploySequenceStarted = true;
+
+  const deployLines = [
+    { text: '> Stage: Deploy', delay: 450 },
+    { text: '', delay: 150 },
+    { text: '[INFO] Starting application...', delay: 300 },
+    { text: '[INFO] Binding to port 8080...', delay: 350 },
+    { text: '', delay: 1000 },
+    { text: '[ERROR] listen EADDRINUSE: address already in use 0.0.0.0:8080', delay: 350 },
+    { text: '[FATAL] Existing process blocking deployment.', delay: 350 },
+    { text: '', delay: 180 },
+    { text: 'Deployment failed.', delay: 250 },
+  ];
+
+  let elapsed = 0;
+
+  deployLines.forEach((entry, index) => {
+    elapsed += entry.delay;
+
+    setTimeout(() => {
+      appendLog(entry.text);
+
+      if (index === deployLines.length - 1) {
+        setPipelineStatus({
+          checkout: 'done',
+          build: 'done',
+          test: 'done',
+          deploy: 'failed',
+        });
+
+        statusValue.textContent = '● DEPLOY FAILED';
+        statusValue.classList.remove('status-success');
+        statusValue.classList.add('status-failed');
+      }
+    }, elapsed);
+  });
+}
+
 document.getElementById('inspectBtn').addEventListener('click', () => {
   if (isTestStageFailed()) {
     if (!state.testLogsExpanded) {
@@ -477,6 +523,8 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
     return;
   }
 
+  state.deploySequenceStarted = false;
+
   const bugFixed = isCartTotalBugFixed();
   const failureTriggerLine = '✖ cartTotalCalculation.test.js FAILED';
   const successTriggerLine = '✔ All unit tests passed';
@@ -564,9 +612,11 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
           deploy: 'pending',
         });
 
-        statusValue.textContent = 'TESTS PASSED';
+        statusValue.textContent = '● TESTS PASSED';
         statusValue.classList.remove('status-failed');
         statusValue.classList.add('status-success');
+
+        runDeployFailureSequence();
       }
     }, elapsed);
   });
