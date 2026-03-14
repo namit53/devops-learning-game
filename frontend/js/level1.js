@@ -338,7 +338,7 @@ function isTestStageFailed() {
 
 function isCartTotalBugFixed() {
   const cartControllerContents = files['controllers/cartController.js'] || '';
-  return cartControllerContents.includes("_.sumBy(items,'price')");
+  return /_\.sumBy\(\s*items\s*,\s*['"]price['"]\s*\)/.test(cartControllerContents);
 }
 
 document.getElementById('inspectBtn').addEventListener('click', () => {
