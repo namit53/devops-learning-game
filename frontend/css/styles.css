@@ -255,10 +255,16 @@ body.terminal-page {
   padding-bottom: 0.65rem;
 }
 
+.terminal-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .terminal-output {
   flex: 1;
   min-height: 0;
-  max-height: 100%;
   overflow-y: auto;
   white-space: pre-wrap;
   line-height: 1.45;
@@ -268,12 +274,16 @@ body.terminal-page {
   margin: 0;
 }
 
+.terminal-input-container {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(41, 255, 106, 0.25);
+  padding-top: 0.75rem;
+}
+
 .terminal-input-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border-top: 1px solid rgba(41, 255, 106, 0.25);
-  padding-top: 0.75rem;
 }
 
 .terminal-prompt {
