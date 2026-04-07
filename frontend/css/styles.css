@@ -450,6 +450,7 @@ body.level1-page {
 .config-output {
   margin: 0;
   flex: 1;
+  min-height: 0;
   overflow: auto;
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(84, 214, 255, 0.15);
@@ -459,6 +460,12 @@ body.level1-page {
   font-size: 0.86rem;
   line-height: 1.45;
   white-space: pre-wrap;
+}
+
+
+.log-output {
+  max-height: min(44vh, 460px);
+  overflow-y: auto;
 }
 
 .config-form {
