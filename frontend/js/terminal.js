@@ -108,6 +108,7 @@ class RecruitmentTerminal {
     this.printLine(`${PROMPT_LABEL} ${inputLine}`);
 
     if (!inputLine) {
+      this.scrollToBottom();
       return;
     }
 
@@ -152,6 +153,8 @@ class RecruitmentTerminal {
       default:
         this.printLine(`Command not found: ${command}`);
     }
+
+    this.scrollToBottom();
   }
 
   handleHelp() {
@@ -360,6 +363,10 @@ class RecruitmentTerminal {
     line.className = "terminal-line";
     line.textContent = text;
     this.outputElement.appendChild(line);
+    this.scrollToBottom();
+  }
+
+  scrollToBottom() {
     this.outputElement.scrollTop = this.outputElement.scrollHeight;
   }
 
