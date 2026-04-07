@@ -10,18 +10,22 @@
     <main class="terminal-wrapper" aria-label="DCIB terminal simulator">
       <section class="terminal-window">
         <header class="terminal-header">secure://dcib/recruitment/screening</header>
-        <div id="terminalOutput" class="terminal-output" aria-live="polite"></div>
-        <form id="terminalForm" class="terminal-input-row" autocomplete="off">
-          <label class="terminal-prompt" for="terminalInput">recruit@dcib:~$</label>
-          <input
-            id="terminalInput"
-            class="terminal-input"
-            name="command"
-            type="text"
-            spellcheck="false"
-            aria-label="Terminal command input"
-          />
-        </form>
+        <div class="terminal-body">
+          <div id="terminalOutput" class="terminal-output" aria-live="polite"></div>
+          <div class="terminal-input-container">
+            <form id="terminalForm" class="terminal-input-row" autocomplete="off">
+              <label class="terminal-prompt" for="terminalInput">recruit@dcib:~$</label>
+              <input
+                id="terminalInput"
+                class="terminal-input"
+                name="command"
+                type="text"
+                spellcheck="false"
+                aria-label="Terminal command input"
+              />
+            </form>
+          </div>
+        </div>
       </section>
     </main>
     <script src="js/terminal.js?v=3"></script>
