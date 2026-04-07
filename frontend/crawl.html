@@ -5,10 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mission Briefing | DevOps: Crime Investigation</title>
     <link rel="stylesheet" href="css/styles.css" />
-    <script src="crawl.js" defer></script>
+    <script src="js/crawl.js" defer></script>
   </head>
   <body class="crawl-page">
     <main class="crawl-screen">
+      <button
+        id="skipButton"
+        class="start-button"
+        type="button"
+        style="position: absolute; top: 2rem; right: 2rem; z-index: 2;"
+      >
+        Skip
+      </button>
+
       <section class="crawl-stage" aria-label="Mission briefing crawl">
         <div class="crawl-text">
           <p class="crawl-heading">DEVOPS: CRIME INVESTIGATION</p>
