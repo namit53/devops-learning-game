@@ -3,6 +3,7 @@ const CRAWL_DURATION_MS = 25000;
 window.addEventListener("DOMContentLoaded", () => {
   const enterButton = document.getElementById("enterButton");
   const skipButton = document.getElementById("skipButton");
+  const crawlStage = document.querySelector(".crawl-stage");
   const crawlText = document.querySelector(".crawl-text");
 
   if (!enterButton) {
@@ -25,6 +26,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
     if (crawlText) {
       crawlText.style.animation = "none";
+      crawlText.style.opacity = "0";
+      crawlText.style.display = "none";
+    }
+
+    if (crawlStage) {
+      crawlStage.style.display = "none";
     }
 
     enterButton.hidden = false;
