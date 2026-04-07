@@ -11,6 +11,7 @@ const state = {
   deployLogsExpanded: false,
   portFreed: false,
   terminalReturnScheduled: false,
+  reviewUnlocked: false,
 };
 
 const INITIAL_LOGS = [
@@ -361,6 +362,26 @@ function isCartTotalBugFixed() {
   return /_\.sumBy\(\s*items\s*,\s*['"]price['"]\s*\)/.test(cartControllerContents);
 }
 
+function ensureLodashDependency() {
+  if (state.dependencyInstalled) {
+    return;
+  }
+
+  const packageContents = files['package.json'] || '';
+
+  if (!/"dependencies"\s*:\s*\{/.test(packageContents) || /"lodash"\s*:/.test(packageContents)) {
+    state.dependencyInstalled = true;
+    return;
+  }
+
+  files['package.json'] = packageContents.replace(
+    /"express"\s*:\s*"\^4\.18\.2"/,
+    '"express": "^4.18.2",\n    "lodash": "^4.17.21"',
+  );
+
+  state.dependencyInstalled = true;
+}
+
 function runDeployFailureSequence() {
   if (state.deploySequenceStarted) {
     return;
@@ -447,6 +468,11 @@ document.getElementById('inspectBtn').addEventListener('click', () => {
 });
 
 document.getElementById('reviewBtn').addEventListener('click', () => {
+  if (!state.reviewUnlocked) {
+    renderRepoExplorer();
+    state.reviewUnlocked = true;
+  }
+
   detailTitle.textContent = 'Source Review';
   detailOutput.hidden = true;
   repoExplorer.hidden = false;
@@ -492,7 +518,7 @@ saveCodeBtn.addEventListener('click', () => {
 document.getElementById('configBtn').addEventListener('click', () => {
   showPanel('terminal');
   if (!configOutput.textContent.trim()) {
-    configOutput.textContent = 'Run diagnostics for port 8080 before re-deploying.\n';
+    configOutput.textContent = 'Missing dependency detected: lodash. Install it before re-running the pipeline.\n';
   }
 });
 
@@ -505,7 +531,11 @@ configForm.addEventListener('submit', (event) => {
 
   configOutput.textContent += `config@dcib-build:~$ ${command}\n`;
 
-  if (command === 'lsof -i :8080') {
+  if (command === 'install lodash' || command === 'npm install lodash') {
+    ensureLodashDependency();
+    configOutput.textContent += 'Installing lodash...\n';
+    configOutput.textContent += 'lodash installed and saved to package.json.\n';
+  } else if (command === 'lsof -i :8080') {
     configOutput.textContent += 'COMMAND   PID   USER   FD   TYPE DEVICE SIZE/OFF NODE NAME\n';
     configOutput.textContent += 'node      4052  admin  22u  IPv4 0x3a21      0t0  TCP *:8080 (LISTEN)\n';
   } else if (command === 'kill -9 4052') {
@@ -620,6 +650,45 @@ document.getElementById('rerunBtn').addEventListener('click', () => {
   state.deploySequenceStarted = false;
   state.deployFailed = false;
 
+  if (!state.dependencyInstalled) {
+    const missingDependencyLines = [
+      { text: '', delay: 120 },
+      { text: '> Re-running pipeline...', delay: 350 },
+      { text: '', delay: 220 },
+      { text: '> Stage: Checkout', delay: 500 },
+      { text: '✔ Repository cloned', delay: 520 },
+      { text: '', delay: 220 },
+      { text: '> Stage: Install Dependencies', delay: 500 },
+      { text: "✖ ERROR: Module 'lodash' not found in package.json", delay: 700 },
+      { text: 'Build aborted. Install lodash from Config Terminal and retry.', delay: 300 },
+    ];
+
+    let missingDependencyElapsed = 0;
+
+    missingDependencyLines.forEach((entry, index) => {
+      missingDependencyElapsed += entry.delay;
+
+      setTimeout(() => {
+        appendLog(entry.text);
+
+        if (index === missingDependencyLines.length - 1) {
+          setPipelineStatus({
+            checkout: 'done',
+            build: 'failed',
+            test: 'pending',
+            deploy: 'pending',
+          });
+
+          statusValue.textContent = '● BUILD FAILED';
+          statusValue.classList.remove('status-success');
+          statusValue.classList.add('status-failed');
+        }
+      }, missingDependencyElapsed);
+    });
+
+    return;
+  }
+
   const bugFixed = isCartTotalBugFixed();
   const failureTriggerLine = '✖ cartTotalCalculation.test.js FAILED';
   const successTriggerLine = '✔ All unit tests passed';
@@ -727,5 +796,4 @@ startInvestigationBtn.addEventListener('click', () => {
 });
 
 levelDashboard.hidden = true;
-renderRepoExplorer();
 setInterval(setClock, 1000);
