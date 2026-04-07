@@ -257,6 +257,8 @@ body.terminal-page {
 
 .terminal-output {
   flex: 1;
+  min-height: 0;
+  max-height: 100%;
   overflow-y: auto;
   white-space: pre-wrap;
   line-height: 1.45;
