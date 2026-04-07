@@ -321,7 +321,7 @@ body.level1-page {
 .level1-container {
   position: relative;
   z-index: 1;
-  width: 100%;
+  width: min(1080px, 96vw);
   min-height: 100vh;
   margin: 0 auto;
   display: flex;
