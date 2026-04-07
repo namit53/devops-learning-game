@@ -11,6 +11,7 @@ const state = {
   deployLogsExpanded: false,
   portFreed: false,
   terminalReturnScheduled: false,
+  reviewUnlocked: false,
 };
 
 const INITIAL_LOGS = [
@@ -467,6 +468,11 @@ document.getElementById('inspectBtn').addEventListener('click', () => {
 });
 
 document.getElementById('reviewBtn').addEventListener('click', () => {
+  if (!state.reviewUnlocked) {
+    renderRepoExplorer();
+    state.reviewUnlocked = true;
+  }
+
   detailTitle.textContent = 'Source Review';
   detailOutput.hidden = true;
   repoExplorer.hidden = false;
@@ -790,5 +796,4 @@ startInvestigationBtn.addEventListener('click', () => {
 });
 
 levelDashboard.hidden = true;
-renderRepoExplorer();
 setInterval(setClock, 1000);
