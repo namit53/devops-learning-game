@@ -313,8 +313,20 @@ body.terminal-page {
 
 /* Level 1 investigation dashboard styles for frontend/level1.html */
 body.level1-page {
+  display: block;
   overflow: auto;
   padding: 2rem 1rem;
+}
+
+.level1-container {
+  position: relative;
+  z-index: 1;
+  width: min(1080px, 96vw);
+  min-height: 100vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
 }
 
 .level1-dashboard {
