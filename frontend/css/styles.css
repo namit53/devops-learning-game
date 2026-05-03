@@ -544,3 +544,132 @@ body.level1-page {
     grid-template-columns: 1fr;
   }
 }
+
+/* Mission Objectives Panel */
+.mission-panel {
+  background: rgba(14, 22, 36, 0.85);
+  border: 1px solid rgba(84, 214, 255, 0.3);
+  padding: 1.5rem;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  width: 320px;
+  min-width: 320px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+.mission-panel.absolute-top-right {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  z-index: 100;
+}
+
+.mission-panel h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-bottom: 1px solid rgba(84, 214, 255, 0.2);
+  padding-bottom: 0.5rem;
+}
+
+.timeline-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  z-index: 2;
+}
+
+.timeline-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 24px;
+  bottom: 0;
+  left: 11px;
+  width: 2px;
+  background: rgba(84, 214, 255, 0.2);
+  z-index: 1;
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+
+.timeline-item.completed:not(:last-child)::after {
+  background: #29ff6a;
+  box-shadow: 0 0 8px rgba(41, 255, 106, 0.4);
+}
+
+.timeline-node {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 2px solid rgba(84, 214, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.4s ease;
+  z-index: 2;
+}
+
+.timeline-content {
+  display: flex;
+  flex-direction: column;
+  padding-top: 2px;
+}
+
+.timeline-title {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: color 0.4s ease;
+}
+
+.timeline-item.completed .timeline-node {
+  background: rgba(41, 255, 106, 0.15);
+  border-color: #29ff6a;
+  box-shadow: 0 0 12px rgba(41, 255, 106, 0.4);
+}
+
+.timeline-item.completed .timeline-node::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: #29ff6a;
+  border-radius: 50%;
+}
+
+.timeline-item.completed .timeline-title {
+  color: #29ff6a;
+}
+
+/* Level 1 Terminal Theme Overrides */
+.terminal-theme.mission-panel {
+  background: rgba(0, 10, 0, 0.85);
+  border-color: rgba(41, 255, 106, 0.3);
+}
+
+.terminal-theme.mission-panel h3 {
+  color: #29ff6a;
+  border-bottom-color: rgba(41, 255, 106, 0.2);
+}
+
+.terminal-theme .timeline-node {
+  border-color: rgba(41, 255, 106, 0.3);
+}
+
+.terminal-theme .timeline-item:not(:last-child)::after {
+  background: rgba(41, 255, 106, 0.15);
+}

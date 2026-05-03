@@ -1,0 +1,19 @@
+
+/* Level 1 Terminal Theme Overrides */
+.terminal-theme.mission-panel {
+  background: rgba(0, 10, 0, 0.85);
+  border-color: rgba(41, 255, 106, 0.3);
+}
+
+.terminal-theme.mission-panel h3 {
+  color: #29ff6a;
+  border-bottom-color: rgba(41, 255, 106, 0.2);
+}
+
+.terminal-theme .timeline-node {
+  border-color: rgba(41, 255, 106, 0.3);
+}
+
+.terminal-theme .timeline-item:not(:last-child)::after {
+  background: rgba(41, 255, 106, 0.15);
+}
