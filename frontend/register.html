@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DevOps: Registration</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <style>
+      .register-screen {
+        position: relative;
+        z-index: 1;
+        max-width: 500px;
+        width: 100%;
+        padding: 2.5rem 2rem;
+        background: rgba(10, 16, 30, 0.94);
+        border: 1px solid rgba(84, 214, 255, 0.35);
+        box-shadow: 0 12px 44px rgba(0, 0, 0, 0.45);
+        text-align: center;
+      }
+      .register-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        margin-top: 2rem;
+      }
+      .form-group {
+        text-align: left;
+      }
+      .form-group label {
+        display: block;
+        color: #92dbff;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .register-input, .register-select {
+        width: 100%;
+        background: rgba(7, 12, 24, 0.9);
+        border: 1px solid rgba(84, 214, 255, 0.3);
+        color: #f2f6ff;
+        padding: 0.8rem 1rem;
+        font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+        transition: border-color 0.2s;
+      }
+      .register-input:focus, .register-select:focus {
+        outline: none;
+        border-color: rgba(84, 214, 255, 0.9);
+        box-shadow: 0 0 8px rgba(84, 214, 255, 0.2);
+      }
+      .register-select option {
+        background: rgba(7, 12, 24, 0.9);
+        color: #f2f6ff;
+      }
+      .error-msg {
+        color: #ff6d6d;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        min-height: 1.2rem;
+      }
+      .loading {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="background-code" aria-hidden="true"></div>
+
+    <main class="register-screen">
+      <h1>AGENT PROFILE</h1>
+      <p class="subtitle">Create Your Operative Identity</p>
+      
+      <form class="register-form" id="registerForm">
+        <div class="form-group">
+          <label for="username">Username (Alias)</label>
+          <input type="text" id="username" class="register-input" required placeholder="e.g. shadow_dev" />
+        </div>
+        
+        <div class="form-group">
+          <label for="age">Age</label>
+          <input type="number" id="age" class="register-input" min="1" max="120" placeholder="e.g. 25" />
+        </div>
+        
+        <div class="form-group">
+          <label for="gender">Gender</label>
+          <select id="gender" class="register-select">
+            <option value="">Select...</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other / Prefer not to say</option>
+          </select>
+        </div>
+
+        <div class="error-msg" id="errorMsg"></div>
+        
+        <button type="submit" class="start-button" style="width: 100%; border-radius: 0; margin-top: 1rem;">INITIALIZE</button>
+      </form>
+    </main>
+
+    <script src="js/register.js"></script>
+  </body>
+</html>

@@ -1,0 +1,120 @@
+.assistant-panel {
+  background: rgba(14, 22, 36, 0.85);
+  border: 1px solid rgba(84, 214, 255, 0.3);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  width: 320px;
+  min-width: 320px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  height: 550px;
+  font-family: 'Inter', sans-serif;
+}
+
+.assistant-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(84, 214, 255, 0.2);
+  color: var(--accent);
+  font-size: 0.95rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.assistant-header span#assistantName {
+  color: #fff;
+  border-bottom: 1px dashed rgba(255,255,255,0.5);
+  cursor: text;
+  outline: none;
+  padding: 0 4px;
+  transition: all 0.2s;
+}
+
+.assistant-header span#assistantName:focus {
+  background: rgba(84, 214, 255, 0.1);
+  border-bottom-color: var(--accent);
+}
+
+.assistant-chat {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chat-message {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  padding: 0.6rem;
+  border-radius: 6px;
+  max-width: 85%;
+  word-wrap: break-word;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.assistant-msg {
+  background: rgba(84, 214, 255, 0.1);
+  border-left: 2px solid var(--accent);
+  color: #e2e8f0;
+  align-self: flex-start;
+}
+
+.user-msg {
+  background: rgba(41, 255, 106, 0.1);
+  border-right: 2px solid #29ff6a;
+  color: #29ff6a;
+  align-self: flex-end;
+  text-align: left;
+}
+
+.assistant-input-row {
+  display: flex;
+  padding: 1rem;
+  border-top: 1px solid rgba(84, 214, 255, 0.2);
+  gap: 0.5rem;
+}
+
+.assistant-input-row input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(84, 214, 255, 0.3);
+  color: #fff;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  outline: none;
+  min-width: 0;
+}
+
+.assistant-input-row input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(84, 214, 255, 0.2);
+}
+
+.assistant-input-row button {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  padding: 0 1rem;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.assistant-input-row button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}

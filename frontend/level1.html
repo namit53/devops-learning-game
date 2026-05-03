@@ -1,87 +1,104 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DCIB Case 001 - Level 1</title>
-    <link rel="stylesheet" href="css/styles.css" />
+    <title>DCIB Recruitment Terminal</title>
+    <link rel="stylesheet" href="css/styles.css?v=3" />
+    <link rel="stylesheet" href="css/assistant.css" />
+    <link rel="stylesheet" href="css/crawl.css" />
   </head>
-  <body class="level1-page">
+  <body class="level1-page" style="display: flex; justify-content: center; align-items: flex-start; padding: 2rem; box-sizing: border-box; min-height: 100vh;">
+    <!-- Story Crawl -->
+    <div id="introCrawl" class="crawl-container">
+      <div class="crawl-fade"></div>
+      <div class="crawl-perspective">
+        <div class="crawl-content" id="crawlContent">
+          <div class="crawl-title">
+            <p>Episode I</p>
+            <h1>THE CHAOS SYNDICATE</h1>
+          </div>
+          <p>The world's digital infrastructure is under attack. A rogue faction of system engineers, known as The Chaos Syndicate, has emerged from the shadows.</p>
+          <p>They are sabotaging critical pipelines, crippling deployments, and plunging global networks into darkness.</p>
+          <p>We are the DevOps Crime Investigation Bureau (DCIB). Our mission is to track them down and restore order to the cloud.</p>
+          <p>But we don't just hire anyone. To prove you have the technical skills to join our ranks, you must pass this screening. Find your hidden Agent Credentials in the terminal and authenticate yourself...</p>
+        </div>
+      </div>
+      <button id="skipCrawlBtn" class="skip-btn">SKIP [ESC]</button>
+    </div>
+    
     <div class="background-code" aria-hidden="true"></div>
 
-    <div class="level1-container">
-      <section class="detail-panel" id="briefingPanel">
-      <div class="panel-title">CASE 001 — DEPLOYMENT FAILURE</div>
-      <pre class="detail-output">Alert:
-Build pipeline failed during deployment.
+    <div style="display: flex; gap: 2rem; width: 100%; max-width: 1400px; justify-content: center; align-items: flex-start; z-index: 1;">
+      
+      <!-- Left Column (Terminal Dashboard) -->
+      <div style="display: flex; flex-direction: column; flex: 1; max-width: 1000px;">
+        <main class="level1-dashboard" aria-live="polite" style="margin: 0; width: 100%;">
+          <header class="level1-header">
+            <div class="level1-project">SECURE://DCIB/RECRUITMENT/SCREENING</div>
+          </header>
 
-Your task:
-Investigate logs, inspect runtime,
-identify the issue, and restore the pipeline.</pre>
-      <div class="action-row">
-        <button type="button" class="action-button primary" id="startInvestigationBtn">START INVESTIGATION</button>
+          <section class="config-terminal" style="display: block; margin-top: 1.5rem;">
+            <div class="panel-title">Terminal Access</div>
+            <div id="xterm-container" style="height: 600px; width: 100%; padding: 0.5rem; background: #000; border-radius: 4px;"></div>
+          </section>
+        </main>
       </div>
-    </section>
 
-    <main class="level1-dashboard" aria-live="polite">
-      <header class="level1-header">
-        <div class="level1-project">PROJ: E-COM CHECKOUT</div>
-        <div class="level1-clock" id="systemClock">--:--:--</div>
-      </header>
+      <!-- Right Column Container -->
+      <div style="display: flex; flex-direction: column; gap: 2rem; position: sticky; top: 2rem;">
+        
+        <!-- Mission Objectives -->
+        <aside class="mission-panel">
+        <h3>Mission Objectives</h3>
+        <ul class="timeline-list" id="missionList">
+          <li class="timeline-item" id="obj-identity">
+            <div class="timeline-node"></div>
+            <div class="timeline-content">
+              <span class="timeline-title">Identity Confirmed</span>
+            </div>
+          </li>
+          <li class="timeline-item" id="obj-vault">
+            <div class="timeline-node"></div>
+            <div class="timeline-content">
+              <span class="timeline-title">Vault Discovered</span>
+            </div>
+          </li>
+          <li class="timeline-item" id="obj-encryption">
+            <div class="timeline-node"></div>
+            <div class="timeline-content">
+              <span class="timeline-title">Encryption Bypassed</span>
+            </div>
+          </li>
+          <li class="timeline-item" id="obj-clearance">
+            <div class="timeline-node"></div>
+            <div class="timeline-content">
+              <span class="timeline-title">Clearance Granted</span>
+            </div>
+          </li>
+        </ul>
+      </aside>
 
-      <section class="level1-status" id="statusSection">
-        <span class="status-label">STATUS:</span>
-        <span class="status-value status-failed" id="statusValue">● BUILD FAILED</span>
-      </section>
-
-      <section class="pipeline-progress" id="pipelineProgress" hidden>
-        <div class="pipeline-step" data-step="checkout">Checkout</div>
-        <div class="pipeline-step" data-step="build">Build</div>
-        <div class="pipeline-step" data-step="test">Test</div>
-        <div class="pipeline-step" data-step="deploy">Deploy</div>
-      </section>
-
-      <section class="log-panel" id="logPanel">
-        <div class="panel-title">Build Console</div>
-        <pre class="log-output" id="logOutput"></pre>
-      </section>
-
-      <section class="detail-panel" id="detailPanel" hidden>
-        <div class="panel-title" id="detailTitle">Details</div>
-        <div id="repoExplorer" hidden>
-          <div class="config-output" id="repoTree" role="tree" aria-label="Repository file explorer"></div>
-          <pre class="detail-output" id="codeViewer">Select a file from the explorer to open it.</pre>
-          <textarea class="detail-output" id="codeEditor" hidden aria-label="Editable source code"></textarea>
-          <div class="action-row" id="codeActionRow" style="margin-top: 0.6rem; grid-template-columns: repeat(2, minmax(0, 180px));" hidden>
-            <button type="button" class="action-button" id="editCodeBtn">Edit Code</button>
-            <button type="button" class="action-button primary" id="saveCodeBtn" hidden>Save</button>
-          </div>
-          <p id="saveCodeMessage" style="margin: 0.4rem 0 0; color: #43e08b; font-size: 0.82rem;" hidden>File saved successfully</p>
+        <!-- Virtual Assistant Panel -->
+        <aside class="assistant-panel">
+        <div class="assistant-header">
+          <span>Assistant: <span id="assistantName" contenteditable="true" spellcheck="false" title="Click to rename">Lucifer</span> <span style="font-size: 0.8em; opacity: 0.7;">✎</span></span>
         </div>
-        <pre class="detail-output" id="detailOutput"></pre>
-      </section>
-
-      <section class="config-terminal" id="configTerminal" hidden>
-        <div class="panel-title">Config Terminal</div>
-        <div class="config-output" id="configOutput"></div>
-        <form class="config-form" id="configForm" autocomplete="off">
-          <label class="config-prompt" for="configInput">config@dcib-build:~$</label>
-          <input id="configInput" class="config-input" type="text" spellcheck="false" />
-        </form>
-      </section>
-
-      <p class="resolve-message" id="resolveMessage" hidden>Returning to DCIB terminal...</p>
-
-      <section class="action-row">
-        <button type="button" class="action-button" id="inspectBtn">Inspect Logs</button>
-        <button type="button" class="action-button" id="reviewBtn">Review Code</button>
-        <button type="button" class="action-button" id="configBtn">Edit Config</button>
-        <button type="button" class="action-button primary" id="rerunBtn">Re-run Job</button>
-      </section>
-    </main>
-
+        <div class="assistant-chat" id="assistantChat">
+          <div class="chat-message assistant-msg">Greetings, Candidate. I am here to assist your screening process. Ask for a hint if you are stuck.</div>
+        </div>
+        <div class="assistant-input-row">
+          <input type="text" id="assistantInput" placeholder="Ask what to do..." />
+          <button id="assistantSendBtn">SEND</button>
+        </div>
+        </aside>
+      </div> <!-- End Right Column Container -->
     </div>
-
-    <script src="js/level1.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="js/assistant.js"></script>
+    <script src="js/level1.js?v=3"></script>
   </body>
 </html>
