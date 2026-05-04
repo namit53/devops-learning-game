@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DCIB Case 002 - Git Time Machine Attack</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/assistant.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <style>
+      .layout-container {
+        display: flex;
+        gap: 1.5rem;
+        width: 100%;
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 2rem;
+        height: calc(100vh - 4rem);
+      }
+      
+      .left-panel {
+        flex: 1;
+        max-width: 350px;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        overflow-y: auto;
+      }
+      
+      .center-panel {
+        flex: 2.5;
+        display: flex;
+        flex-direction: column;
+        background: #0a0a0a;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      
+      .right-panel {
+        flex: 1;
+        max-width: 350px;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      
+      .terminal-header {
+        background: var(--bg-card);
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        display: flex;
+        justify-content: space-between;
+      }
+      
+      #xterm-container {
+        flex: 1;
+        padding: 0.5rem;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      
+      /* Allows scrolling past the last line in the terminal */
+      .xterm .xterm-viewport {
+        padding-bottom: 80vh !important;
+      }
+
+      .info-panel {
+        background: rgba(41, 255, 106, 0.05);
+        border-left: 4px solid var(--text-green);
+        padding: 1rem;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+      
+      .info-panel h4 {
+        margin-top: 0;
+        color: var(--text-green);
+        margin-bottom: 0.5rem;
+      }
+      
+      .controls-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+      
+      .controls-grid .action-button {
+        width: 100%;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="background-code" aria-hidden="true"></div>
+
+    <div class="layout-container" style="z-index: 1; position: relative;">
+      
+      <!-- Left Panel: Story & Objectives -->
+      <div class="left-panel">
+        <section class="detail-panel" style="margin: 0;">
+          <div class="panel-title">CASE 002 — GIT TIME MACHINE</div>
+          <div class="detail-output" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; font-family: 'JetBrains Mono', monospace;">INCOMING TRANSMISSION...
+FROM: DCIB Command
+
+Agent, the Chaos Syndicate is using advanced evasion tactics. 
+
+Our scanners report the current payment-gateway branch is "clean", but the preview deployments are still leaking credentials. 
+
+They are likely hiding malicious payloads deep in the repository history.
+
+Your task: Locate the hidden code, identify the attacker, and cleanse the repository history.</div>
+        </section>
+
+        <aside class="mission-panel">
+          <h3>Mission Objectives</h3>
+          <ul class="timeline-list" id="missionList">
+            <li class="timeline-item" id="obj-1">
+              <div class="timeline-node"></div>
+              <div class="timeline-content">
+                <span class="timeline-title">Locate hidden malicious file & commit</span>
+              </div>
+            </li>
+            <li class="timeline-item" id="obj-2">
+              <div class="timeline-node"></div>
+              <div class="timeline-content">
+                <span class="timeline-title">Identify the attacker</span>
+              </div>
+            </li>
+            <li class="timeline-item" id="obj-3">
+              <div class="timeline-node"></div>
+              <div class="timeline-content">
+                <span class="timeline-title">Restore repository integrity</span>
+              </div>
+            </li>
+          </ul>
+        </aside>
+      </div>
+
+      <!-- Center Panel: Terminal -->
+      <div class="center-panel">
+        <div class="terminal-header">
+          <span>GIT TERMINAL</span>
+          <span id="systemClock">--:--:--</span>
+        </div>
+        <div id="xterm-container"></div>
+      </div>
+
+      <!-- Right Panel: Assistant & Controls -->
+      <div class="right-panel" style="min-height: 0;">
+        <aside class="assistant-panel" style="flex: 1; display: flex; flex-direction: column; min-height: 0; max-height: 100%;">
+          <div class="assistant-header">
+            <span>Assistant: <span id="assistantName" contenteditable="true" spellcheck="false" title="Click to rename">Luca</span> <span style="font-size: 0.8em; opacity: 0.7;">✎</span></span>
+          </div>
+          <div class="assistant-chat" id="assistantChat" style="flex: 1; overflow-y: auto;">
+            <div class="chat-message assistant-msg">System initialized. I'm monitoring the terminal. How should we begin?</div>
+          </div>
+          <div class="assistant-input-row">
+            <input type="text" id="assistantInput" placeholder="Ask what to do..." />
+            <button id="assistantSendBtn">SEND</button>
+          </div>
+        </aside>
+
+        <section class="detail-panel" style="margin: 0; padding: 0.75rem;">
+          <div class="panel-title" style="margin-bottom: 0.5rem;">Controls</div>
+          <div class="controls-grid">
+            <button type="button" class="action-button primary" id="runScanBtn">Run DCIB Scan</button>
+            <button type="button" class="action-button" id="hintBtn">Request Hint</button>
+            <button type="button" class="action-button info-btn" id="whatIsAttackBtn" style="display: none;">What is this attack?</button>
+          </div>
+        </section>
+      </div>
+
+    </div>
+
+    <!-- Success Overlay -->
+    <div id="successOverlay" class="cinematic-overlay" style="display: none; justify-content: center; align-items: center; background: rgba(0,0,0,0.9); z-index: 100;">
+      <div style="text-align: center; color: var(--text-green); font-family: 'JetBrains Mono', monospace;">
+        <h1 style="font-size: 3rem; margin-bottom: 1rem;">THREAT NEUTRALIZED</h1>
+        <p style="font-size: 1.2rem; color: var(--text-white); margin-bottom: 2rem;">Git history rewritten. System integrity fully restored.</p>
+        <button class="action-button primary" onclick="window.location.href='index.html'" style="padding: 1rem 2rem; font-size: 1.1rem; width: auto; margin: 0 auto; display: inline-block;">Return to HQ</button>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="js/assistant.js"></script>
+    <script src="js/level3.js"></script>
+  </body>
+</html>

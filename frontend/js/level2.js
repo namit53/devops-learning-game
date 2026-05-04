@@ -641,6 +641,7 @@ function completeCase() {
   statusValue.textContent = 'APP DEPLOYED';
   statusValue.classList.remove('status-failed');
   statusValue.classList.add('status-success');
+  resolveMessage.textContent = 'Advancing to Case 002...';
   resolveMessage.hidden = false;
   document.getElementById('obj-pipeline').classList.add('completed');
 
@@ -663,7 +664,7 @@ function completeCase() {
   .catch(err => console.error('Failed to save progress:', err))
   .finally(() => {
     setTimeout(() => {
-      window.location.href = 'level1.html';
+      window.location.href = 'level3.html';
     }, 2200);
   });
 }

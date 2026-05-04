@@ -340,7 +340,26 @@
       "username": "tester_agent",
       "age": "25",
       "gender": null,
-      "history": [],
+      "history": [
+        {
+          "levelId": "level_3",
+          "status": "completed",
+          "logs": [
+            "Git Time Machine Attack neutralized"
+          ],
+          "score": 100,
+          "completedAt": "2026-05-04T22:27:39.007Z"
+        },
+        {
+          "levelId": "level_3",
+          "status": "completed",
+          "logs": [
+            "Git Time Machine Attack neutralized"
+          ],
+          "score": 100,
+          "completedAt": "2026-05-04T22:59:17.036Z"
+        }
+      ],
       "joinedAt": "2026-05-03T12:48:26.164Z"
     }
   ]

