@@ -570,17 +570,19 @@ document.getElementById('configBtn').addEventListener('click', () => {
     
     const container = document.getElementById('xterm-container');
     term.open(container);
-    fitAddon.fit();
     
-    // Connect WebSocket
-    socket = io('http://localhost:3000');
-    
-    socket.on('connect', () => {
-      term.writeln('Connected to lab environment.');
-      socket.emit('start_lab', { levelId: 'level_1', cols: term.cols, rows: term.rows });
-    });
-    
-    socket.on('terminal_output', (data) => {
+    setTimeout(() => {
+      fitAddon.fit();
+      
+      // Connect WebSocket
+      socket = io('http://localhost:3000');
+      
+      socket.on('connect', () => {
+        term.writeln('Connected to lab environment.');
+        socket.emit('start_lab', { levelId: 'level_1', cols: term.cols, rows: term.rows });
+      });
+      
+      socket.on('terminal_output', (data) => {
       let cleanData = data;
       if (data.includes('__DEPENDENCY_INSTALLED__')) {
         ensureLodashDependency();
@@ -605,6 +607,7 @@ document.getElementById('configBtn').addEventListener('click', () => {
         socket.emit('terminal_resize', { cols: term.cols, rows: term.rows });
       }
     });
+    }, 50);
   }
 });
 

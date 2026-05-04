@@ -171,9 +171,9 @@ io.on('connection', (socket) => {
         chmod +x /usr/local/bin/npm
         
         echo '#!/bin/bash' > /usr/local/bin/lsof
-        echo 'if [ "$1" == "-i" ] && [ "$2" == ":3000" ]; then' >> /usr/local/bin/lsof
+        echo 'if [ "$1" == "-i" ] && [ "$2" == ":8080" ]; then' >> /usr/local/bin/lsof
         echo '  echo "COMMAND   PID   USER   FD   TYPE DEVICE SIZE/OFF NODE NAME"' >> /usr/local/bin/lsof
-        echo '  echo "node      4052  admin  22u  IPv4 0x3a21      0t0  TCP *:3000 (LISTEN)"' >> /usr/local/bin/lsof
+        echo '  echo "node      4052  admin  22u  IPv4 0x3a21      0t0  TCP *:8080 (LISTEN)"' >> /usr/local/bin/lsof
         echo 'else' >> /usr/local/bin/lsof
         echo '  echo ""' >> /usr/local/bin/lsof
         echo 'fi' >> /usr/local/bin/lsof
