@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Level Hub | DevOps: Crime Investigation</title>
     <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/rewards.css" />
     <style>
       body.dashboard-page {
         display: block;
@@ -83,6 +84,7 @@
         margin-top: 0.5rem;
       }
       .level-card {
+        position: relative;
         background: rgba(10, 16, 30, 0.9);
         border: 1px solid rgba(84, 214, 255, 0.25);
         border-radius: 4px;
@@ -214,7 +216,11 @@
           <h1 id="welcomeText">Operative: shadow_dev</h1>
           <div class="profile-meta" id="profileMeta">
             ID Clearance: <span id="profileEmail">agent@dcib.gov</span> | 
-            Completed Tasks: <span id="completedCount">0</span>/6
+            Completed Tasks: <span id="completedCount">0</span>/7
+          </div>
+          <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;">
+            <div class="dashboard-total-score">⚡ SCORE: <span id="totalScoreValue">0</span></div>
+            <span class="dashboard-rank" id="playerRank">Recruit</span>
           </div>
         </div>
         <div class="hub-actions">
@@ -250,10 +256,23 @@
           <a href="level2.html" id="btn-level_2" class="launch-btn">Inspect Logistics</a>
         </div>
 
+        <!-- Level 3 -->
+        <div class="level-card" id="card-level_3">
+          <div class="card-header">
+            <span class="level-num">Phase 3</span>
+            <span class="level-status-badge status-not-started" id="status-level_3">Not Started</span>
+          </div>
+          <div class="card-body">
+            <h3 class="level-title">Git Time Machine</h3>
+            <p class="level-desc">Neutralize an advanced persistent threat hidden deep in Git history.</p>
+          </div>
+          <a href="crawl3.html" id="btn-level_3" class="launch-btn">Rewrite History</a>
+        </div>
+
         <!-- Level 4 -->
         <div class="level-card" id="card-level_4">
           <div class="card-header">
-            <span class="level-num">Phase 3</span>
+            <span class="level-num">Phase 4</span>
             <span class="level-status-badge status-not-started" id="status-level_4">Not Started</span>
           </div>
           <div class="card-body">
@@ -266,7 +285,7 @@
         <!-- Level 5 -->
         <div class="level-card" id="card-level_5">
           <div class="card-header">
-            <span class="level-num">Phase 4</span>
+            <span class="level-num">Phase 5</span>
             <span class="level-status-badge status-not-started" id="status-level_5">Not Started</span>
           </div>
           <div class="card-body">
@@ -279,7 +298,7 @@
         <!-- Level 6 -->
         <div class="level-card" id="card-level_6">
           <div class="card-header">
-            <span class="level-num">Phase 5</span>
+            <span class="level-num">Phase 6</span>
             <span class="level-status-badge status-not-started" id="status-level_6">Not Started</span>
           </div>
           <div class="card-body">
@@ -292,7 +311,7 @@
         <!-- Level 7 -->
         <div class="level-card" id="card-level_7">
           <div class="card-header">
-            <span class="level-num">Phase 6</span>
+            <span class="level-num">Phase 7</span>
             <span class="level-status-badge status-not-started" id="status-level_7">Not Started</span>
           </div>
           <div class="card-body">
@@ -345,12 +364,13 @@
             document.getElementById('completedCount').textContent = completedLevels.size;
             
             // Define level order for unlocking
-            const levelOrder = ['level_1', 'level_2', 'level_4', 'level_5', 'level_6', 'level_7'];
+            const levelOrder = ['level_1', 'level_2', 'level_3', 'level_4', 'level_5', 'level_6', 'level_7'];
             
             // Collect original texts for restoration
             const originalTexts = {
               'level_1': 'Enter Screening Lab',
               'level_2': 'Inspect Logistics',
+              'level_3': 'Rewrite History',
               'level_4': 'Infiltrate Node',
               'level_5': 'Stabilize Monitors',
               'level_6': 'Review Directives',
@@ -414,7 +434,80 @@
         }
       }
 
-      fetchProgress();
+      const BADGE_IMAGES = {
+        level_1: 'assets/badges/badge_level1.png',
+        level_2: 'assets/badges/badge_level2.png',
+        level_3: 'assets/badges/badge_level3.png',
+        level_4: 'assets/badges/badge_level4.png',
+        level_5: 'assets/badges/badge_level5.png',
+        level_6: 'assets/badges/badge_level6.png',
+        level_7: 'assets/badges/badge_level7.png',
+      };
+
+      const RANKS = [
+        { min: 0,    title: 'Recruit' },
+        { min: 500,  title: 'Field Agent' },
+        { min: 1500, title: 'Senior Operative' },
+        { min: 2500, title: 'Elite Commander' },
+      ];
+
+      function getRank(score) {
+        let rank = 'Recruit';
+        for (const r of RANKS) {
+          if (score >= r.min) rank = r.title;
+        }
+        return rank;
+      }
+
+      async function fetchScoreData() {
+        const identifier = currentEmail || currentUsername;
+        if (!identifier) return;
+        try {
+          const response = await fetch(`http://localhost:3000/api/players/${encodeURIComponent(identifier)}/score`);
+          if (!response.ok) return;
+          const { totalScore, bestScores, badges } = await response.json();
+
+          // Update total score and rank
+          document.getElementById('totalScoreValue').textContent = totalScore.toLocaleString();
+          document.getElementById('playerRank').textContent = getRank(totalScore);
+
+          // Add badge images and per-level scores to cards
+          const levelOrder = ['level_1', 'level_2', 'level_3', 'level_4', 'level_5', 'level_6', 'level_7'];
+          levelOrder.forEach(id => {
+            const card = document.getElementById(`card-${id}`);
+            if (!card) return;
+
+            // Add badge image if level completed
+            if (bestScores[id] !== undefined && BADGE_IMAGES[id]) {
+              // Remove existing badge if any
+              const existing = card.querySelector('.card-badge');
+              if (!existing) {
+                const img = document.createElement('img');
+                img.src = BADGE_IMAGES[id];
+                img.alt = 'Badge';
+                img.className = 'card-badge';
+                card.appendChild(img);
+              }
+            }
+
+            // Add score below status badge
+            if (bestScores[id] !== undefined && bestScores[id] > 0) {
+              const header = card.querySelector('.card-header');
+              const existingScore = card.querySelector('.card-score');
+              if (!existingScore && header) {
+                const scoreEl = document.createElement('div');
+                scoreEl.className = 'card-score';
+                scoreEl.textContent = `⭐ ${bestScores[id]} pts`;
+                header.appendChild(scoreEl);
+              }
+            }
+          });
+        } catch (err) {
+          console.error('Error fetching score data:', err);
+        }
+      }
+
+      fetchProgress().then(() => fetchScoreData());
     </script>
   </body>
 </html>

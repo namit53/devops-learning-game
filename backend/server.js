@@ -100,15 +100,47 @@ app.get('/api/players/:email', (req, res) => {
 
 app.post('/api/players/:username/progress', (req, res) => {
   const { username } = req.params;
-  const { levelId, status, logs, score } = req.body;
+  const { levelId, status, logs, score, badge, objectives } = req.body;
   const data = readData();
   const playerIndex = data.players.findIndex(p => p.username === username || p.email === username);
   
   if (playerIndex === -1) return res.status(404).json({ error: 'Player not found' });
   
-  data.players[playerIndex].history.push({ levelId, status, logs: logs || [], score: score || 0, completedAt: new Date().toISOString() });
+  const entry = {
+    levelId,
+    status,
+    logs: logs || [],
+    score: score || 0,
+    completedAt: new Date().toISOString()
+  };
+  if (badge) entry.badge = badge;
+  if (objectives && objectives.length) entry.objectives = objectives;
+
+  data.players[playerIndex].history.push(entry);
   writeData(data);
   res.json({ message: 'Progress saved', history: data.players[playerIndex].history });
+});
+
+// Score endpoint — returns best score per level and total
+app.get('/api/players/:username/score', (req, res) => {
+  const { username } = req.params;
+  const data = readData();
+  const player = data.players.find(p => p.username === username || p.email === username);
+  if (!player) return res.status(404).json({ error: 'Player not found' });
+
+  const history = player.history || [];
+  const bestScores = {};
+  const badges = {};
+  history.forEach(h => {
+    if (h.status === 'completed' || h.status === 'done') {
+      if (!bestScores[h.levelId] || h.score > bestScores[h.levelId]) {
+        bestScores[h.levelId] = h.score || 0;
+      }
+      if (h.badge) badges[h.levelId] = h.badge;
+    }
+  });
+  const totalScore = Object.values(bestScores).reduce((sum, s) => sum + s, 0);
+  res.json({ totalScore, bestScores, badges });
 });
 
 // --- WebSockets for Docker Terminal ---

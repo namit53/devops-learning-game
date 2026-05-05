@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mission Briefing | DevOps: Crime Investigation</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <script src="js/crawl.js" defer></script>
+  </head>
+  <body class="crawl-page">
+    <main class="crawl-screen">
+      <button
+        id="skipButton"
+        class="start-button"
+        type="button"
+        style="position: absolute; top: 2rem; right: 2rem; z-index: 2;"
+      >
+        Skip
+      </button>
+
+      <section class="crawl-stage" aria-label="Mission briefing crawl">
+        <div class="crawl-text">
+          <p class="crawl-heading">DCIB CASE FILE 002<br>GIT TIME MACHINE</p>
+          <p>
+            DCIB Command reports unusual activity in the payment-gateway repository.
+          </p>
+          <p>
+            The current files look clean, but something hidden in Git history may still be executing.
+          </p>
+          <p>
+            An attacker may have committed malicious code, removed it later, and left behind a path that reaches back into the past.
+          </p>
+          <p>
+            Investigate the history.
+          </p>
+          <p>
+            Find the attacker.
+          </p>
+          <p>
+            Restore the repository.
+          </p>
+        </div>
+      </section>
+
+      <a id="enterButton" class="enter-button" href="level3.html" hidden>ENTER CASE 002</a>
+    </main>
+  </body>
+</html>

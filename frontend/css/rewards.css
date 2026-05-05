@@ -1,0 +1,315 @@
+/* ============================
+   REWARD SYSTEM STYLES
+   ============================ */
+
+/* --- Live Score Counter --- */
+.reward-score-display {
+  position: fixed;
+  top: 1rem;
+  right: 1.5rem;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 1.1rem;
+  background: rgba(10, 16, 30, 0.92);
+  border: 1px solid rgba(84, 214, 255, 0.35);
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 12px rgba(84, 214, 255, 0.08);
+  font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #54d6ff;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.reward-score-display .score-icon {
+  font-size: 1.1rem;
+}
+
+.reward-score-display .score-value {
+  color: #f2f6ff;
+  min-width: 3ch;
+  text-align: right;
+}
+
+.reward-score-display.score-bump {
+  transform: scale(1.12);
+  box-shadow: 0 4px 24px rgba(84, 214, 255, 0.3), 0 0 20px rgba(84, 214, 255, 0.15);
+}
+
+/* --- Flag Popup Overlay --- */
+.reward-flag-popup {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(120px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.8rem;
+  background: rgba(10, 16, 30, 0.95);
+  border: 1px solid rgba(84, 214, 255, 0.45);
+  border-radius: 10px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(84, 214, 255, 0.15),
+    inset 0 0 0 1px rgba(84, 214, 255, 0.08);
+  backdrop-filter: blur(12px);
+  animation: flagSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+}
+
+.reward-flag-popup.golden {
+  border-color: rgba(255, 215, 0, 0.6);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 24px rgba(255, 215, 0, 0.2),
+    0 0 48px rgba(255, 215, 0, 0.08),
+    inset 0 0 0 1px rgba(255, 215, 0, 0.12);
+}
+
+.reward-flag-popup.fade-out {
+  animation: flagSlideDown 0.4s ease-in forwards;
+}
+
+.flag-icon {
+  font-size: 2rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px rgba(84, 214, 255, 0.4));
+  animation: flagPulse 1s ease-in-out infinite;
+}
+
+.golden .flag-icon {
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+  animation: goldenPulse 0.8s ease-in-out infinite;
+}
+
+.flag-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.flag-label {
+  font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+  font-size: 0.78rem;
+  color: #92dbff;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.golden .flag-label {
+  color: #ffd700;
+}
+
+.flag-objective {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f2f6ff;
+}
+
+.flag-points {
+  font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #54d6ff;
+  text-shadow: 0 0 10px rgba(84, 214, 255, 0.4);
+  min-width: 70px;
+  text-align: right;
+}
+
+.golden .flag-points {
+  color: #ffd700;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+}
+
+/* --- Level Complete Banner --- */
+.reward-complete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  animation: overlayFadeIn 0.6s ease forwards;
+}
+
+.reward-complete-card {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 3rem 4rem;
+  max-width: 520px;
+}
+
+.badge-reveal {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 215, 0, 0.5);
+  box-shadow:
+    0 0 30px rgba(255, 215, 0, 0.25),
+    0 0 60px rgba(255, 215, 0, 0.1);
+  animation: badgeReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform: scale(0);
+}
+
+.complete-title {
+  font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #ffd700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 16px rgba(255, 215, 0, 0.3);
+  margin: 0;
+}
+
+.complete-subtitle {
+  font-size: 1rem;
+  color: #a4b3cd;
+  margin: 0;
+}
+
+.complete-score {
+  font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #54d6ff;
+  text-shadow: 0 0 12px rgba(84, 214, 255, 0.4);
+  margin: 0;
+}
+
+.complete-score-label {
+  font-size: 0.82rem;
+  color: #92dbff;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: -0.8rem 0 0;
+}
+
+.complete-rank {
+  font-size: 0.95rem;
+  color: #ffd700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.4rem 1.2rem;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  background: rgba(255, 215, 0, 0.06);
+  border-radius: 4px;
+}
+
+.complete-continue-btn {
+  display: inline-block;
+  padding: 0.85rem 2.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(84, 214, 255, 0.5);
+  color: #f2f6ff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: linear-gradient(160deg, rgba(84, 214, 255, 0.16), rgba(84, 214, 255, 0.06));
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 6px 26px rgba(21, 148, 207, 0.2);
+  font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+}
+
+.complete-continue-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(84, 214, 255, 0.9);
+  box-shadow: 0 10px 30px rgba(31, 183, 230, 0.32), 0 0 22px rgba(84, 214, 255, 0.28);
+}
+
+/* --- Dashboard Badge Styles --- */
+.card-badge {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 215, 0, 0.5);
+  box-shadow: 0 0 14px rgba(255, 215, 0, 0.25);
+  animation: badgeGlow 2s ease-in-out infinite alternate;
+  z-index: 5;
+}
+
+.card-score {
+  font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+  font-size: 0.78rem;
+  color: #ffd700;
+  letter-spacing: 0.06em;
+  margin-top: 0.3rem;
+}
+
+.dashboard-total-score {
+  font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+  font-size: 0.95rem;
+  color: #ffd700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dashboard-rank {
+  font-size: 0.78rem;
+  color: #ffd700;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  background: rgba(255, 215, 0, 0.06);
+  border-radius: 3px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* --- Keyframes --- */
+@keyframes flagSlideUp {
+  from { transform: translateX(-50%) translateY(120px); opacity: 0; }
+  to   { transform: translateX(-50%) translateY(0);     opacity: 1; }
+}
+
+@keyframes flagSlideDown {
+  from { transform: translateX(-50%) translateY(0);     opacity: 1; }
+  to   { transform: translateX(-50%) translateY(120px); opacity: 0; }
+}
+
+@keyframes flagPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.1); }
+}
+
+@keyframes goldenPulse {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50%      { transform: scale(1.15) rotate(5deg); }
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes badgeReveal {
+  0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
+  60%  { transform: scale(1.15) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes badgeGlow {
+  from { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
+  to   { box-shadow: 0 0 20px rgba(255, 215, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.1); }
+}

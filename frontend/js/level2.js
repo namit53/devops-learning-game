@@ -21,6 +21,11 @@
   });
 })();
 
+// Initialize Reward System
+if (window.RewardSystem) {
+  window.RewardSystem.init();
+}
+
 const state = {
   dependencyInstalled: false,
   logsExpanded: false,
@@ -548,6 +553,7 @@ saveCodeBtn.addEventListener('click', () => {
   
   if (isCartTotalBugFixed()) {
     document.getElementById('obj-code').classList.add('completed');
+    if (window.RewardSystem) window.RewardSystem.showFlag('Codebase Patched', 100);
   }
 });
 
@@ -587,11 +593,13 @@ document.getElementById('configBtn').addEventListener('click', () => {
       if (data.includes('__DEPENDENCY_INSTALLED__')) {
         ensureLodashDependency();
         document.getElementById('obj-dependency').classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Dependency Resolved', 100);
         cleanData = cleanData.replace(/__DEPENDENCY_INSTALLED__\r?\n?/, '');
       }
       if (data.includes('__PORT_FREED__')) {
         state.portFreed = true;
         document.getElementById('obj-port').classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Port Conflict Cleared', 100);
         cleanData = cleanData.replace(/__PORT_FREED__\r?\n?/, '');
       }
       term.write(cleanData);
@@ -641,10 +649,12 @@ function completeCase() {
   statusValue.textContent = 'APP DEPLOYED';
   statusValue.classList.remove('status-failed');
   statusValue.classList.add('status-success');
-  resolveMessage.textContent = 'Advancing to Case 002...';
-  resolveMessage.hidden = false;
   document.getElementById('obj-pipeline').classList.add('completed');
 
+  // Golden flag for final objective
+  if (window.RewardSystem) window.RewardSystem.showFlag('Pipeline Restored', 200, true);
+
+  const totalScore = window.RewardSystem ? window.RewardSystem.getScore() : 100;
   const username = localStorage.getItem('devops_player_username') || 'shadow_dev';
   
   fetch(`http://localhost:3000/api/players/${username}/progress`, {
@@ -655,7 +665,9 @@ function completeCase() {
     body: JSON.stringify({
       levelId: 'level_1',
       status: 'completed',
-      score: 100,
+      score: totalScore,
+      badge: 'pipeline_restorer',
+      objectives: window.RewardSystem ? window.RewardSystem.getObjectives() : [],
       logs: logs
     })
   })
@@ -664,12 +676,25 @@ function completeCase() {
   .catch(err => console.error('Failed to save progress:', err))
   .finally(() => {
     setTimeout(() => {
-      window.location.href = 'level3.html';
-    }, 2200);
+      if (window.RewardSystem) {
+        window.RewardSystem.showLevelComplete('level_2', 'The Missing Dependency', totalScore, () => {
+          window.location.href = 'crawl3.html';
+        });
+      } else {
+        window.location.href = 'crawl3.html';
+      }
+    }, 3200);
   });
 }
 
 document.getElementById('rerunBtn').addEventListener('click', () => {
+  const statusSection = document.getElementById('statusSection');
+  if (statusSection) {
+    statusSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   if (state.resolved) {
     return;
   }

@@ -11,6 +11,11 @@ const state = {
   // 7: completed
 };
 
+// Initialize Reward System
+if (window.RewardSystem) {
+  window.RewardSystem.init();
+}
+
 const hints = {
   1: "Try clicking the 'Run DCIB Scan' button to see what we're dealing with.",
   3: "The current tree is clean. Maybe an old script is calling an old commit? Try searching the codebase for git commands: `git grep \"git checkout\"`",
@@ -59,6 +64,7 @@ assistantSendBtn.addEventListener('click', () => {
   if (state.stage === 5.8 && val.includes('jia tan')) {
     state.stage = 6;
     document.getElementById('obj-2').classList.add('completed');
+    if (window.RewardSystem) window.RewardSystem.showFlag('Identify the Attacker', 100);
     setTimeout(() => {
       addChatMessage("Correct. Jia Tan is the attacker. We know who did it. Now we need to clean the system completely. Try reverting the bad commit first.", 'assistant');
     }, 2000);
@@ -170,6 +176,7 @@ function initTerminal() {
         if (state.stage === 5) {
           state.stage = 5.8;
           document.getElementById('obj-1').classList.add('completed');
+          if (window.RewardSystem) window.RewardSystem.showFlag('Locate Hidden Malicious Commit', 100);
           setTimeout(() => {
             addChatMessage("Now find who introduced this... Type the attacker's name to me.", 'assistant');
           }, 2000);
@@ -195,6 +202,7 @@ function initTerminal() {
         if (state.stage === 6.5) {
           state.stage = 7;
           document.getElementById('obj-3').classList.add('completed');
+          if (window.RewardSystem) window.RewardSystem.showFlag('Restore Repository Integrity', 200, true);
           setTimeout(() => {
             addChatMessage("Threat removed from both present and history. System secure.", 'assistant');
             saveProgressAndComplete();
@@ -237,6 +245,7 @@ function initTerminal() {
 }
 
 function saveProgressAndComplete() {
+  const totalScore = window.RewardSystem ? window.RewardSystem.getScore() : 100;
   const username = localStorage.getItem('devops_player_username') || 'shadow_dev';
   
   fetch(`http://localhost:3000/api/players/${username}/progress`, {
@@ -247,7 +256,9 @@ function saveProgressAndComplete() {
     body: JSON.stringify({
       levelId: 'level_3',
       status: 'completed',
-      score: 100,
+      score: totalScore,
+      badge: 'history_guardian',
+      objectives: window.RewardSystem ? window.RewardSystem.getObjectives() : [],
       logs: ['Git Time Machine Attack neutralized']
     })
   })
@@ -256,7 +267,13 @@ function saveProgressAndComplete() {
   .catch(err => console.error('Failed to save progress:', err))
   .finally(() => {
     setTimeout(() => {
-      document.getElementById('successOverlay').style.display = 'flex';
+      if (window.RewardSystem) {
+        window.RewardSystem.showLevelComplete('level_3', 'Git Time Machine', totalScore, () => {
+          window.location.href = 'dashboard.html';
+        });
+      } else {
+        document.getElementById('successOverlay').style.display = 'flex';
+      }
     }, 1500);
   });
 }
