@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Level Hub | DevOps: Crime Investigation</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <style>
+      body.dashboard-page {
+        display: block;
+        overflow: auto;
+        padding: 2rem 1rem;
+        background: radial-gradient(circle at top, #0e1624, #080b11 70%);
+        min-height: 100vh;
+      }
+      .dashboard-container {
+        position: relative;
+        z-index: 1;
+        max-width: 1120px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .dashboard-header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid rgba(84, 214, 255, 0.35);
+        background: rgba(10, 16, 30, 0.85);
+        padding: 1.25rem 1.75rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(84, 214, 255, 0.08);
+        border-radius: 4px;
+        backdrop-filter: blur(8px);
+      }
+      .profile-info {
+        text-align: left;
+      }
+      .profile-info h1 {
+        font-size: clamp(1.5rem, 2.8vw, 2.2rem);
+        margin: 0;
+        color: #f2f6ff;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        text-shadow: 0 0 12px rgba(84, 214, 255, 0.3);
+      }
+      .profile-meta {
+        margin: 0.35rem 0 0;
+        font-size: 0.95rem;
+        color: #a4b3cd;
+        font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+      }
+      .profile-meta span {
+        color: #54d6ff;
+      }
+      .hub-actions {
+        display: flex;
+        gap: 0.85rem;
+      }
+      .logout-btn {
+        background: linear-gradient(160deg, rgba(255, 109, 109, 0.15), rgba(255, 109, 109, 0.04));
+        border: 1px solid rgba(255, 109, 109, 0.35);
+        color: #ff8e8e;
+        padding: 0.65rem 1.4rem;
+        font-size: 0.85rem;
+        font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      }
+      .logout-btn:hover {
+        border-color: rgba(255, 109, 109, 0.8);
+        box-shadow: 0 0 12px rgba(255, 109, 109, 0.25);
+        transform: translateY(-2px);
+      }
+      .level-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 1.25rem;
+        margin-top: 0.5rem;
+      }
+      .level-card {
+        background: rgba(10, 16, 30, 0.9);
+        border: 1px solid rgba(84, 214, 255, 0.25);
+        border-radius: 4px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 1.2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+        backdrop-filter: blur(8px);
+        min-height: 280px;
+      }
+      .level-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(84, 214, 255, 0.7);
+        box-shadow: 0 8px 32px rgba(84, 214, 255, 0.18), inset 0 0 0 1px rgba(84, 214, 255, 0.12);
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(84, 214, 255, 0.15);
+        padding-bottom: 0.75rem;
+      }
+      .level-num {
+        font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+        color: #54d6ff;
+        font-weight: 700;
+        font-size: 0.85rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .level-status-badge {
+        font-size: 0.72rem;
+        font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+        font-weight: 700;
+        padding: 0.25rem 0.65rem;
+        border-radius: 2px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .status-not-started {
+        background: rgba(132, 146, 166, 0.1);
+        border: 1px solid rgba(132, 146, 166, 0.3);
+        color: #8492a6;
+      }
+      .status-completed {
+        background: rgba(67, 224, 139, 0.12);
+        border: 1px solid rgba(67, 224, 139, 0.5);
+        color: #43e08b;
+        text-shadow: 0 0 6px rgba(67, 224, 139, 0.3);
+      }
+      .card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .level-title {
+        margin: 0;
+        font-size: 1.15rem;
+        color: #f2f6ff;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+      }
+      .level-desc {
+        margin: 0;
+        color: #a4b3cd;
+        font-size: 0.88rem;
+        line-height: 1.5;
+      }
+      .launch-btn {
+        display: inline-block;
+        background: linear-gradient(170deg, rgba(84, 214, 255, 0.2), rgba(84, 214, 255, 0.06));
+        border: 1px solid rgba(84, 214, 255, 0.35);
+        color: #f2f6ff;
+        padding: 0.75rem;
+        width: 100%;
+        text-align: center;
+        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+      }
+      .level-card:hover .launch-btn {
+        border-color: #54d6ff;
+        background: linear-gradient(170deg, rgba(84, 214, 255, 0.35), rgba(84, 214, 255, 0.1));
+        box-shadow: 0 0 14px rgba(84, 214, 255, 0.25);
+      }
+      .launch-btn.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+        filter: grayscale(1);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+      .level-card.locked {
+        opacity: 0.7;
+      }
+      .level-card.locked:hover {
+        transform: none;
+        border-color: rgba(84, 214, 255, 0.25);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+      @media (max-width: 768px) {
+        .dashboard-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 1.25rem;
+        }
+        .hub-actions {
+          width: 100%;
+          justify-content: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body class="dashboard-page">
+    <div class="background-code" aria-hidden="true"></div>
+
+    <div class="dashboard-container">
+      <!-- Profile Header -->
+      <header class="dashboard-header">
+        <div class="profile-info">
+          <h1 id="welcomeText">Operative: shadow_dev</h1>
+          <div class="profile-meta" id="profileMeta">
+            ID Clearance: <span id="profileEmail">agent@dcib.gov</span> | 
+            Completed Tasks: <span id="completedCount">0</span>/6
+          </div>
+        </div>
+        <div class="hub-actions">
+          <button type="button" class="logout-btn" onclick="logoutOperative()">Terminate Clearance</button>
+        </div>
+      </header>
+
+      <!-- Grid of Available Game Levels -->
+      <main class="level-grid" id="levelGrid">
+        <!-- Level 1 -->
+        <div class="level-card" id="card-level_1">
+          <div class="card-header">
+            <span class="level-num">Phase 1</span>
+            <span class="level-status-badge status-not-started" id="status-level_1">Not Started</span>
+          </div>
+          <div class="card-body">
+            <h3 class="level-title">Recruitment Screening</h3>
+            <p class="level-desc">Validate operative credentials and gain clearance for secure systems.</p>
+          </div>
+          <a href="level1.html" id="btn-level_1" class="launch-btn">Enter Screening Lab</a>
+        </div>
+
+        <!-- Level 2 -->
+        <div class="level-card" id="card-level_2">
+          <div class="card-header">
+            <span class="level-num">Phase 2</span>
+            <span class="level-status-badge status-not-started" id="status-level_2">Not Started</span>
+          </div>
+          <div class="card-body">
+            <h3 class="level-title">The Missing Dependency</h3>
+            <p class="level-desc">Locate and restore software dependencies in failing build stages.</p>
+          </div>
+          <a href="level2.html" id="btn-level_2" class="launch-btn">Inspect Logistics</a>
+        </div>
+
+        <!-- Level 4 -->
+        <div class="level-card" id="card-level_4">
+          <div class="card-header">
+            <span class="level-num">Phase 3</span>
+            <span class="level-status-badge status-not-started" id="status-level_4">Not Started</span>
+          </div>
+          <div class="card-body">
+            <h3 class="level-title">Container Infiltration</h3>
+            <p class="level-desc">Trace rogue processes inside sandboxed Linux environment containers.</p>
+          </div>
+          <a href="level4.html" id="btn-level_4" class="launch-btn">Infiltrate Node</a>
+        </div>
+
+        <!-- Level 5 -->
+        <div class="level-card" id="card-level_5">
+          <div class="card-header">
+            <span class="level-num">Phase 4</span>
+            <span class="level-status-badge status-not-started" id="status-level_5">Not Started</span>
+          </div>
+          <div class="card-body">
+            <h3 class="level-title">Monitoring & Alerting</h3>
+            <p class="level-desc">Mitigate synthetic DDOS and performance load spikes on live instances.</p>
+          </div>
+          <a href="level5.html" id="btn-level_5" class="launch-btn">Stabilize Monitors</a>
+        </div>
+
+        <!-- Level 6 -->
+        <div class="level-card" id="card-level_6">
+          <div class="card-header">
+            <span class="level-num">Phase 5</span>
+            <span class="level-status-badge status-not-started" id="status-level_6">Not Started</span>
+          </div>
+          <div class="card-body">
+            <h3 class="level-title">Infrastructure as Code</h3>
+            <p class="level-desc">Modify Terraform configuration states to update firewall parameters.</p>
+          </div>
+          <a href="level6.html" id="btn-level_6" class="launch-btn">Review Directives</a>
+        </div>
+
+        <!-- Level 7 -->
+        <div class="level-card" id="card-level_7">
+          <div class="card-header">
+            <span class="level-num">Phase 6</span>
+            <span class="level-status-badge status-not-started" id="status-level_7">Not Started</span>
+          </div>
+          <div class="card-body">
+            <h3 class="level-title">Orchestration Meltdown</h3>
+            <p class="level-desc">Analyze failing Kubernetes pod configurations to restart backend pods.</p>
+          </div>
+          <a href="level7.html" id="btn-level_7" class="launch-btn">Deploy Restraints</a>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const currentEmail = localStorage.getItem('devops_player_email');
+      const currentUsername = localStorage.getItem('devops_player_username');
+
+      if (!currentEmail && !currentUsername) {
+        window.location.href = 'register.html';
+      }
+
+      function logoutOperative() {
+        localStorage.clear();
+        window.location.href = 'register.html';
+      }
+
+      async function fetchProgress() {
+        if (!currentEmail && !currentUsername) return;
+        
+        try {
+          const identifier = currentEmail || currentUsername;
+          const response = await fetch(`http://localhost:3000/api/players/${encodeURIComponent(identifier)}`);
+          if (!response.ok) return;
+
+          const { player } = await response.json();
+          if (player) {
+            document.getElementById('welcomeText').textContent = `Operative: ${player.username}`;
+            if (player.email) {
+              document.getElementById('profileEmail').textContent = player.email;
+            }
+
+            const history = player.history || [];
+            
+            // Collect completed unique levels
+            const completedLevels = new Set();
+            history.forEach(item => {
+              if (item.status === 'completed' || item.status === 'done') {
+                completedLevels.add(item.levelId);
+              }
+            });
+
+            document.getElementById('completedCount').textContent = completedLevels.size;
+            
+            // Define level order for unlocking
+            const levelOrder = ['level_1', 'level_2', 'level_4', 'level_5', 'level_6', 'level_7'];
+            
+            // Collect original texts for restoration
+            const originalTexts = {
+              'level_1': 'Enter Screening Lab',
+              'level_2': 'Inspect Logistics',
+              'level_4': 'Infiltrate Node',
+              'level_5': 'Stabilize Monitors',
+              'level_6': 'Review Directives',
+              'level_7': 'Deploy Restraints'
+            };
+
+            // First, lock everything except Phase 1
+            levelOrder.forEach((id, index) => {
+              const btn = document.getElementById(`btn-${id}`);
+              const card = document.getElementById(`card-${id}`);
+              
+              if (index === 0) return; // Always unlocked
+              
+              if (btn) {
+                btn.classList.add('disabled');
+                btn.textContent = 'Locked - Complete Previous Phase';
+              }
+              if (card) {
+                card.classList.add('locked');
+              }
+            });
+
+            // Second, update based on completion
+            levelOrder.forEach((id, index) => {
+              const badge = document.getElementById(`status-${id}`);
+              const btn = document.getElementById(`btn-${id}`);
+              const card = document.getElementById(`card-${id}`);
+              
+              // If this level is completed
+              if (completedLevels.has(id) || (id === 'level_1' && completedLevels.has('recruitment'))) {
+                if (badge) {
+                  badge.className = 'level-status-badge status-completed';
+                  badge.textContent = 'Completed';
+                }
+                if (btn) {
+                  btn.classList.remove('disabled');
+                  btn.textContent = 'Revisit Phase';
+                }
+                if (card) {
+                  card.classList.remove('locked');
+                }
+                
+                // UNLOCK the next level in sequence
+                if (index < levelOrder.length - 1) {
+                  const nextId = levelOrder[index + 1];
+                  const nextBtn = document.getElementById(`btn-${nextId}`);
+                  const nextCard = document.getElementById(`card-${nextId}`);
+                  if (nextBtn) {
+                    nextBtn.classList.remove('disabled');
+                    nextBtn.textContent = originalTexts[nextId];
+                  }
+                  if (nextCard) {
+                    nextCard.classList.remove('locked');
+                  }
+                }
+              }
+            });
+          }
+        } catch (err) {
+          console.error('Error fetching progress:', err);
+        }
+      }
+
+      fetchProgress();
+    </script>
+  </body>
+</html>

@@ -56,6 +56,22 @@ window.addEventListener('DOMContentLoaded', () => {
     socket.on('terminal_output', (data) => {
       // Don't render the magic string to the user
       if (data.includes('__REDIRECT_TO_LEVEL_2__')) {
+        const objClearance = document.getElementById('obj-clearance');
+        if (objClearance) objClearance.classList.add('completed');
+        
+        const username = localStorage.getItem('devops_player_username') || 'shadow_dev';
+        fetch(`http://localhost:3000/api/players/${username}/progress`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            levelId: 'level_1',
+            status: 'completed',
+            score: 100
+          })
+        }).catch(err => console.error(err));
+
         setTimeout(() => {
           window.location.href = 'level2.html';
         }, 1000);
@@ -66,19 +82,16 @@ window.addEventListener('DOMContentLoaded', () => {
       
       outputBuffer += data;
       if (outputBuffer.includes('Candidate 8472')) {
-        document.getElementById('obj-identity').classList.add('completed');
+        const el = document.getElementById('obj-identity');
+        if (el) el.classList.add('completed');
       }
       if (outputBuffer.includes('dcib_vault') || outputBuffer.includes('.config')) {
-        document.getElementById('obj-vault').classList.add('completed');
+        const el = document.getElementById('obj-vault');
+        if (el) el.classList.add('completed');
       }
       if (outputBuffer.includes('ZGVsdGFTZWN1cmU=')) {
-        document.getElementById('obj-encryption').classList.add('completed');
-      }
-      if (outputBuffer.includes('__REDIRECT_TO_LEVEL_2__')) {
-        document.getElementById('obj-clearance').classList.add('completed');
-        setTimeout(() => {
-          window.location.href = 'level2.html';
-        }, 1000);
+        const el = document.getElementById('obj-encryption');
+        if (el) el.classList.add('completed');
       }
       
       if (outputBuffer.length > 5000) {
@@ -118,6 +131,8 @@ window.addEventListener('DOMContentLoaded', () => {
           return "The credentials file is obfuscated in base64. Output its contents and decode it using 'base64 -d'. Once you have the code, type 'login' and enter it.";
         }
         return "You have completed all objectives for this screening phase.";
+      }, () => {
+        return "Level 1: Recruitment Screening. Your mission is to gain clearance for DCIB access. Current goals are: (1) Confirm Identity, (2) Discover the hidden Vault, (3) Bypass File Encryption, (4) Submit the Decoded Clearance Code.";
       });
     }
   }, 50);

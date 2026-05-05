@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DCIB Case 007 - Level 7</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/assistant.css" />
+    <link rel="stylesheet" href="css/level2_intro.css" />
+    <style>
+      .completed {
+        text-decoration: line-through;
+        opacity: 0.6;
+      }
+      .completed .timeline-node {
+        background: #43e08b !important;
+        box-shadow: 0 0 8px #43e08b !important;
+      }
+    </style>
+  </head>
+  <body class="level1-page">
+    <!-- Cinematic Intro -->
+    <div id="cinematicIntro" class="cinematic-overlay">
+      <div class="red-flash"></div>
+      <span class="alert-text">⚠ ORCHESTRATION LAYER FAILURE ⚠</span>
+      <div class="l2-crawl-fade"></div>
+      <div class="l2-crawl-perspective">
+        <div class="l2-crawl-content" id="l2CrawlContent">
+          <div class="crawl-episode">
+            <p>Chapter 7</p>
+            <h1>ORCHESTRATION MELTDOWN</h1>
+          </div>
+          <p>The Kubernetes cluster has ground to a complete halt. Essential microservices are flapping, trapped in a fatal CrashLoopBackOff cycle.</p>
+          <p>The Chaos Syndicate has corrupted our cluster ConfigMap values, causing services to crash immediately upon boot.</p>
+          <p>Agent, your directive: Use kubectl get pods to map the cluster, fetch logs and pod descriptors to extract diagnostic clues, patch the faulty environment settings in config.yaml, restore clean status with kubectl apply, and define robust livenessProbe and readinessProbe configurations to secure automated recovery.</p>
+          <p>Good luck. Let's get these pods back on their feet.</p>
+        </div>
+      </div>
+      <button id="skipL2CrawlBtn" class="l2-skip-btn">SKIP [ESC]</button>
+    </div>
+
+    <div class="background-code" aria-hidden="true"></div>
+
+    <div style="display: flex; gap: 2rem; width: 100%; max-width: 1400px; justify-content: center; align-items: flex-start; z-index: 1;">
+      
+      <!-- Left Column (Briefing + Dashboard) -->
+      <div style="display: flex; flex-direction: column; gap: 2rem; flex: 1; max-width: 1000px;">
+        
+        <section class="detail-panel" id="briefingPanel" style="margin: 0;">
+          <div class="panel-title">CASE 007 — ORCHESTRATION & KUBERNETES</div>
+          <div class="detail-output" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; font-family: 'JetBrains Mono', monospace;">INCOMING TRANSMISSION...
+FROM: DCIB Command
+
+Multiple services are stuck in CrashLoopBackOff states.
+Use Kubernetes diagnostics commands to capture underlying config errors, fix variables in config.yaml, and define health check probes to complete the mission.</div>
+          <div class="action-row">
+            <button type="button" class="action-button primary" id="startInvestigationBtn">START INVESTIGATION</button>
+          </div>
+        </section>
+
+        <main class="level1-dashboard" aria-live="polite" style="margin: 0; width: 100%;" id="mainDashboard" hidden>
+          <header class="level1-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="level1-project">CASE: KUBERNETES DEPLOYMENT & PROBES</div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <div class="level1-clock" id="systemClock">--:--:--</div>
+              <a href="dashboard.html" style="color: #54d6ff; text-decoration: none; font-family: 'JetBrains Mono', Consolas, Monaco, monospace; font-size: 0.82rem; font-weight: 600; text-transform: uppercase; border: 1px solid rgba(84, 214, 255, 0.3); padding: 0.4rem 0.8rem; background: rgba(84, 214, 255, 0.1); letter-spacing: 0.05em; transition: all 0.2s;">Level Hub</a>
+            </div>
+          </header>
+
+          <section class="level1-status" id="statusSection">
+            <span class="status-label">STATUS:</span>
+            <span class="status-value status-failed" id="statusValue">● ORCHESTRATION DRIFT</span>
+          </section>
+
+          <section class="detail-panel" id="detailPanel">
+            <div class="panel-title" id="detailTitle">Deployment File Explorer</div>
+            <div id="repoExplorer">
+              <div class="config-output" id="repoTree" role="tree" aria-label="Repository file explorer">
+                <div>repo/</div>
+                <button type="button" class="action-button primary" id="configYamlBtn" style="display: block; width: 100%; text-align: left; margin: 0.2rem 0;">├── config.yaml</button>
+              </div>
+              <pre class="detail-output" id="codeViewer" style="margin-top: 0.5rem;"></pre>
+              <textarea class="detail-output" id="codeEditor" aria-label="Editable source code" style="height: 180px;" hidden></textarea>
+              <div class="action-row" id="codeActionRow" style="margin-top: 0.6rem; grid-template-columns: repeat(2, minmax(0, 180px));">
+                <button type="button" class="action-button" id="editCodeBtn">Edit File</button>
+                <button type="button" class="action-button primary" id="saveCodeBtn" hidden>Save</button>
+              </div>
+              <p id="saveCodeMessage" style="margin: 0.4rem 0 0; color: #43e08b; font-size: 0.82rem;" hidden>File saved successfully</p>
+            </div>
+          </section>
+
+          <section class="config-terminal" id="configTerminal" style="margin-top: 1rem;">
+            <div class="panel-title">Kubernetes Cluster Terminal Access</div>
+            <div id="xterm-container" style="height: 380px; width: 100%; padding: 0.5rem; background: #000;"></div>
+          </section>
+
+          <p class="resolve-message" id="resolveMessage" style="margin-top: 1rem;" hidden>All Kubernetes pods secured and fully ready. Excellent work Agent!</p>
+
+          <section class="action-row" style="margin-top: 1.5rem;">
+            <button type="button" class="action-button primary" id="evaluateBtn">Complete Level 7</button>
+          </section>
+        </main>
+      </div> <!-- End Left Column -->
+
+      <!-- Right Column Container -->
+      <div style="display: flex; flex-direction: column; gap: 2rem; position: sticky; top: 2rem;">
+        
+        <!-- Mission Objectives -->
+        <aside class="mission-panel">
+          <h3>Mission Objectives</h3>
+          <ul class="timeline-list" id="missionList">
+            <li class="timeline-item" id="obj-locate">
+              <div class="timeline-node"></div>
+              <div class="timeline-content">
+                <span class="timeline-title">Locate Failing Microservices</span>
+              </div>
+            </li>
+            <li class="timeline-item" id="obj-diagnostics">
+              <div class="timeline-node"></div>
+              <div class="timeline-content">
+                <span class="timeline-title">Extract Pod Diagnostics</span>
+              </div>
+            </li>
+            <li class="timeline-item" id="obj-config">
+              <div class="timeline-node"></div>
+              <div class="timeline-content">
+                <span class="timeline-title">Fix ConfigMap/Secret</span>
+              </div>
+            </li>
+            <li class="timeline-item" id="obj-deploy">
+              <div class="timeline-node"></div>
+              <div class="timeline-content">
+                <span class="timeline-title">Deploy Valid State</span>
+              </div>
+            </li>
+            <li class="timeline-item" id="obj-probes">
+              <div class="timeline-node"></div>
+              <div class="timeline-content">
+                <span class="timeline-title">Probe Configuration</span>
+              </div>
+            </li>
+          </ul>
+        </aside>
+
+        <!-- Virtual Assistant Panel -->
+        <aside class="assistant-panel">
+          <div class="assistant-header">
+            <span>Assistant: <span id="assistantName" contenteditable="true" spellcheck="false" title="Click to rename">Lucifer</span> <span style="font-size: 0.8em; opacity: 0.7;">✎</span></span>
+          </div>
+          <div class="assistant-chat" id="assistantChat">
+            <div class="chat-message assistant-msg">Kubernetes pods are experiencing errors. Ask me for hints to troubleshoot livenessProbes and describe pod logs.</div>
+          </div>
+          <div class="assistant-input-row">
+            <input type="text" id="assistantInput" placeholder="Ask what to do..." />
+            <button id="assistantSendBtn">SEND</button>
+          </div>
+        </aside>
+      </div> <!-- End Right Column Container -->
+
+    </div> <!-- End Game Layout -->
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="js/assistant.js"></script>
+    <script src="js/level7.js"></script>
+  </body>
+</html>
