@@ -19,7 +19,7 @@ const hints = {
   5.5: "We found the malicious code! Now find who introduced this commit. Try `git log` or `git show a17c9e4`.",
   5.8: "Look closely at the author of the malicious commit. Type their full name to me.",
   6: "We know who did it. Now we need to clean the system completely. Try reverting the bad commit first: `git revert <commit_hash>`",
-  6.5: "Good, but the commit still exists in history! To completely erase it, you need to rewrite history. Try: `git rebase -i` (Note: for this lab, just typing it will simulate the process)."
+  6.5: "Good, but the commit still exists in history! Find a safe commit hash that comes before the malicious commit, then use `git rebase -i <safe_commit_hash>` to completely rewrite commit history and prevent any future attack."
 };
 
 const sysClock = document.getElementById('systemClock');

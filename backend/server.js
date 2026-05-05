@@ -346,11 +346,29 @@ PAYLOAD
     ;;
   log)
     cat <<'LOG'
-commit f2d4c91 HEAD -> main
+commit 6d9f3a1 HEAD -> main
+Author: Leo Vance <leo@dcib.local>
+Date:   Wed Mar 04 14:22:11 2026 +0000
+
+    Update README instructions
+
+commit c24a9b5
+Author: Sam Rivera <sam@dcib.local>
+Date:   Wed Mar 04 10:05:30 2026 +0000
+
+    Fix CI/CD pipeline bug
+
+commit f2d4c91
 Author: Mira Chen <mira@dcib.local>
 Date:   Tue Mar 03 09:17:42 2026 +0000
 
     remove obsolete preview payload
+
+commit 3b8d1a2
+Author: Alex Kim <alex@dcib.local>
+Date:   Tue Mar 03 09:05:12 2026 +0000
+
+    Add new UI components
 
 commit a17c9e4
 Author: Jia Tan <jiatan@chaos.invalid>
@@ -363,6 +381,12 @@ Author: Priya Shah <priya@dcib.local>
 Date:   Mon Mar 02 16:18:33 2026 +0000
 
     harden payment gateway healthcheck
+
+commit e5f6g7h
+Author: System Admin <admin@dcib.local>
+Date:   Sun Mar 01 09:00:00 2026 +0000
+
+    Initial project scaffolding
 LOG
     echo "__L3_ATTACKER_IDENTIFIED__"
     ;;
@@ -402,8 +426,60 @@ SHOW
     ;;
   rebase)
     if [ "$1" = "-i" ]; then
+      target="$2"
+      if [ -z "$target" ]; then
+        echo "fatal: invalid upstream ''"
+        exit 1
+      fi
+      if [ "$target" != "8c4b210" ] && [ "$target" != "e5f6g7h" ] && [ "$target" != "3b8d1a2" ] && [ "$target" != "f2d4c91" ] && [ "$target" != "c24a9b5" ] && [ "$target" != "6d9f3a1" ]; then
+        echo "fatal: invalid upstream '$target'"
+        exit 1
+      fi
+      
       reverted="$(cat /opt/dcib-state/reverted)"
-      if [ "$reverted" = "1" ]; then
+      if [ "$reverted" != "1" ]; then
+        echo "Interactive rebase prepared, but DCIB policy requires reverting the active payload first."
+        exit 1
+      fi
+      
+      clear
+      echo "Interactive Rebase - Edit To-Do List"
+      echo "------------------------------------"
+      if [ "$target" = "e5f6g7h" ]; then
+        echo "pick 8c4b210 harden payment gateway healthcheck"
+      fi
+      echo "pick a17c9e4 add temporary session hook for preview deploy"
+      echo "pick 3b8d1a2 Add new UI components"
+      echo "pick f2d4c91 remove obsolete preview payload"
+      echo "pick c24a9b5 Fix CI/CD pipeline bug"
+      echo "pick 6d9f3a1 Update README instructions"
+      echo ""
+      echo "# Commands:"
+      echo "# p, pick <commit> = use commit"
+      echo "# d, drop <commit> = remove commit"
+      echo ""
+      
+      dropped_malicious=0
+      while true; do
+        read -p "> " cmd arg
+        if [ "$cmd" = "drop" ] || [ "$cmd" = "d" ]; then
+          if [ "$arg" = "a17c9e4" ]; then
+            echo "=> Marked a17c9e4 for drop."
+            dropped_malicious=1
+            break
+          else
+            echo "=> Marked $arg for drop."
+          fi
+        elif [ "$cmd" = "pick" ] || [ "$cmd" = "p" ]; then
+          echo "=> Marked $arg to pick."
+        elif [ "$cmd" = "done" ] || [ "$cmd" = "save" ] || [ "$cmd" = ":wq" ]; then
+          break
+        else
+          echo "Unknown command: $cmd"
+        fi
+      done
+      
+      if [ "$dropped_malicious" = "1" ]; then
         echo 1 > /opt/dcib-state/history_clean
         echo main > /opt/dcib-state/current_commit
         sed -i '/git checkout a17c9e4/d' /workspace/payment-gateway/scripts/deploy-preview.sh
@@ -412,10 +488,11 @@ SHOW
         echo "Dropped commit a17c9e4 from reachable project history."
         echo "__L3_HISTORY_CLEANED__"
       else
-        echo "Interactive rebase prepared, but DCIB policy requires reverting the active payload first."
+        echo "Successfully rebased and updated refs/heads/main."
+        echo "Warning: Malicious commit was not dropped."
       fi
     else
-      echo "This lab only supports: git rebase -i"
+      echo "This lab only supports: git rebase -i <safe_commit_hash>"
     fi
     ;;
   *)
