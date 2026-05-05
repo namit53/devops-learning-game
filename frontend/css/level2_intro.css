@@ -113,10 +113,11 @@
 }
 
 .l2-crawl-content .crawl-episode h1 {
-  font-size: 3.5rem;
+  font-size: 3.2rem;
   margin: 0;
   text-transform: uppercase;
   color: #FFE81F;
+  white-space: nowrap;
 }
 
 .l2-crawl-content > p {

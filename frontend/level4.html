@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DCIB Case 004 - Level 4</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/assistant.css" />
+    <link rel="stylesheet" href="css/level2_intro.css" />
+    <style>
+      .completed {
+        text-decoration: line-through;
+        opacity: 0.6;
+      }
+      .completed .timeline-node {
+        background: #43e08b !important;
+        box-shadow: 0 0 8px #43e08b !important;
+      }
+    </style>
+  </head>
+  <body class="level1-page">
+    <!-- Cinematic Intro -->
+    <div id="cinematicIntro" class="cinematic-overlay">
+      <div class="red-flash"></div>
+      <span class="alert-text">⚠ MALICIOUS CODE INJECTION DETECTED ⚠</span>
+      <div class="l2-crawl-fade"></div>
+      <div class="l2-crawl-perspective">
+        <div class="l2-crawl-content" id="l2CrawlContent">
+          <div class="crawl-episode">
+            <p>Chapter 4</p>
+            <h1>CONTAINER INFILTRATION</h1>
+          </div>
+          <p>We've tracked a breach down to a core microservice. The Chaos Syndicate has modified our production Docker images, injecting covert crypto-miners and reverse shells into the system layers.</p>
+          <p>These background workers are siphoning computing power and exfiltrating secure credentials to their remote control centers.</p>
+          <p>Agent, your directive is clear: infiltrate the running environment, locate the infected processes, patch the insecure base image configuration, verify with a fresh rebuild, and completely purge the old compromised resources.</p>
+          <p>Good luck. The digital safety of our perimeter relies entirely on you.</p>
+        </div>
+      </div>
+      <button id="skipL2CrawlBtn" class="l2-skip-btn">SKIP [ESC]</button>
+    </div>
+
+    <div class="background-code" aria-hidden="true"></div>
+
+    <div style="display: flex; gap: 2rem; width: 100%; max-width: 1400px; justify-content: center; align-items: flex-start; z-index: 1;">
+      
+      <!-- Left Column (Briefing + Dashboard) -->
+      <div style="display: flex; flex-direction: column; gap: 2rem; flex: 1; max-width: 1000px;">
+        
+        <section class="detail-panel" id="briefingPanel" style="margin: 0;">
+          <div class="panel-title">CASE 004 — CONTAINER AUDIT & INFILTRATION</div>
+          <div class="detail-output" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; font-family: 'JetBrains Mono', monospace;">INCOMING TRANSMISSION...
+FROM: DCIB Command
+
+Agent 8472, the Syndicate's covert containerized breach is live.
+You must immediately audit the active containers using docker ps, infiltrate the malicious instance via interactive terminal inspection, fix the insecure base image in our Dockerfile, rebuild clean instances, and finalize the decontamination by removing old compromised resources.</div>
+          <div class="action-row">
+            <button type="button" class="action-button primary" id="startInvestigationBtn">START INVESTIGATION</button>
+          </div>
+        </section>
+
+        <main class="level1-dashboard" aria-live="polite" style="margin: 0; width: 100%;" id="mainDashboard" hidden>
+          <header class="level1-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="level1-project">CASE: CONTAINER AUDIT & SECURE REBUILD</div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <div class="level1-clock" id="systemClock">--:--:--</div>
+              <a href="dashboard.html" style="color: #54d6ff; text-decoration: none; font-family: 'JetBrains Mono', Consolas, Monaco, monospace; font-size: 0.82rem; font-weight: 600; text-transform: uppercase; border: 1px solid rgba(84, 214, 255, 0.3); padding: 0.4rem 0.8rem; background: rgba(84, 214, 255, 0.1); letter-spacing: 0.05em; transition: all 0.2s;">Level Hub</a>
+            </div>
+          </header>
+
+          <section class="level1-status" id="statusSection">
+            <span class="status-label">STATUS:</span>
+            <span class="status-value status-failed" id="statusValue">● REBUILD PENDING</span>
+          </section>
+
+          <section class="detail-panel" id="detailPanel">
+            <div class="panel-title" id="detailTitle">Dockerfile Source</div>
+            <div id="repoExplorer">
+              <div class="config-output" id="repoTree" role="tree" aria-label="Repository file explorer">
+                <div>repo/</div>
+                <button type="button" class="action-button primary" id="dockerfileBtn" style="display: block; width: 100%; text-align: left; margin: 0.2rem 0;">├── Dockerfile</button>
+              </div>
+              <pre class="detail-output" id="codeViewer" style="margin-top: 0.5rem;"></pre>
+              <textarea class="detail-output" id="codeEditor" aria-label="Editable source code" style="height: 180px;" hidden></textarea>
+              <div class="action-row" id="codeActionRow" style="margin-top: 0.6rem; grid-template-columns: repeat(2, minmax(0, 180px));">
+                <button type="button" class="action-button" id="editCodeBtn">Edit Code</button>
+                <button type="button" class="action-button primary" id="saveCodeBtn" hidden>Save</button>
+              </div>
+              <p id="saveCodeMessage" style="margin: 0.4rem 0 0; color: #43e08b; font-size: 0.82rem;" hidden>File saved successfully</p>
+            </div>
+          </section>
+
+          <section class="config-terminal" id="configTerminal" style="margin-top: 1rem;">
+            <div class="panel-title">Secure DCIB Remote Terminal</div>
+            <div id="xterm-container" style="height: 380px; width: 100%; padding: 0.5rem; background: #000;"></div>
+          </section>
+
+          <p class="resolve-message" id="resolveMessage" style="margin-top: 1rem;" hidden>All objectives cleared. Decontamination complete!</p>
+
+          <section class="action-row" style="margin-top: 1.5rem;">
+            <button type="button" class="action-button primary" id="evaluateBtn">Complete Level 4</button>
+          </section>
+        </main>
+      </div> <!-- End Left Column -->
+
+      <!-- Right Column Container -->
+      <div style="display: flex; flex-direction: column; gap: 2rem; position: sticky; top: 2rem;">
+        
+        <!-- Mission Objectives -->
+        <aside class="mission-panel">
+          <h3>Mission Objectives</h3>
+          <ul class="timeline-list" id="missionList">
+            <li class="timeline-item" id="obj-audit">
+              <div class="timeline-node"></div>
+              <div class="timeline-content">
+                <span class="timeline-title">Container Audit</span>
+              </div>
+            </li>
+            <li class="timeline-item" id="obj-inspect">
+              <div class="timeline-node"></div>
+              <div class="timeline-content">
+                <span class="timeline-title">Interactive Inspection</span>
+              </div>
+            </li>
+            <li class="timeline-item" id="obj-fix">
+              <div class="timeline-node"></div>
+              <div class="timeline-content">
+                <span class="timeline-title">Image Configuration Fix</span>
+              </div>
+            </li>
+            <li class="timeline-item" id="obj-build">
+              <div class="timeline-node"></div>
+              <div class="timeline-content">
+                <span class="timeline-title">Clean Build & Scans</span>
+              </div>
+            </li>
+            <li class="timeline-item" id="obj-clear">
+              <div class="timeline-node"></div>
+              <div class="timeline-content">
+                <span class="timeline-title">Clear Old Resources</span>
+              </div>
+            </li>
+          </ul>
+        </aside>
+
+        <!-- Virtual Assistant Panel -->
+        <aside class="assistant-panel">
+          <div class="assistant-header">
+            <span>Assistant: <span id="assistantName" contenteditable="true" spellcheck="false" title="Click to rename">Lucifer</span> <span style="font-size: 0.8em; opacity: 0.7;">✎</span></span>
+          </div>
+          <div class="assistant-chat" id="assistantChat">
+            <div class="chat-message assistant-msg">Insecure containers are running. Ask me for a hint if you need assistance in identifying them.</div>
+          </div>
+          <div class="assistant-input-row">
+            <input type="text" id="assistantInput" placeholder="Ask what to do..." />
+            <button id="assistantSendBtn">SEND</button>
+          </div>
+        </aside>
+      </div> <!-- End Right Column Container -->
+
+    </div> <!-- End Game Layout -->
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="js/assistant.js"></script>
+    <script src="js/level4.js"></script>
+  </body>
+</html>

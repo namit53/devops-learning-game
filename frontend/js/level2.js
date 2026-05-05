@@ -660,7 +660,7 @@ function completeCase() {
   .catch(err => console.error('Failed to save progress:', err))
   .finally(() => {
     setTimeout(() => {
-      window.location.href = 'level1.html';
+      window.location.href = 'level4.html';
     }, 2200);
   });
 }
@@ -927,5 +927,7 @@ if (window.VirtualAssistant) {
       return "All issues appear resolved. Click 'Evaluate' to re-run the pipeline and verify the fixes.";
     }
     return "The pipeline is fully restored. Great job.";
+  }, () => {
+    return "Level 2: Pipeline Sabotage. Your mission is to restore the sabotaged deployment pipeline. Current goals are: (1) Resolve missing lodash dependency, (2) Fix cart total bug in controllers/cartController.js, (3) Free blocked port 3000, (4) Re-run pipeline to ensure complete resolution.";
   });
 }
