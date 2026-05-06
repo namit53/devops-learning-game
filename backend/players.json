@@ -146,10 +146,188 @@
     {
       "id": "1777626100371",
       "username": "Satyam10",
-      "age": null,
-      "gender": null,
-      "history": [],
-      "joinedAt": "2026-05-01T09:01:40.371Z"
+      "age": "22",
+      "gender": "male",
+      "history": [
+        {
+          "levelId": "level_1",
+          "status": "completed",
+          "logs": [],
+          "score": 600,
+          "completedAt": "2026-05-06T03:26:20.078Z",
+          "badge": "recruitment_cleared",
+          "objectives": [
+            {
+              "name": "Vault Discovered",
+              "points": 100,
+              "flag": "standard"
+            },
+            {
+              "name": "Encryption Bypassed",
+              "points": 100,
+              "flag": "standard"
+            },
+            {
+              "name": "Clearance Granted",
+              "points": 100,
+              "flag": "standard"
+            },
+            {
+              "name": "Identity Confirmed",
+              "points": 100,
+              "flag": "standard"
+            },
+            {
+              "name": "Clearance Granted",
+              "points": 200,
+              "flag": "golden"
+            }
+          ]
+        },
+        {
+          "levelId": "level_2",
+          "status": "completed",
+          "logs": [
+            "> Jenkins Build #402 initiated...",
+            "> Cloning repository...",
+            "> Installing dependencies...",
+            "> Running build script...",
+            "",
+            "> ERROR: Module 'lodash' not found in package.json",
+            "> Build step failed.",
+            "",
+            "> (System awaiting user input)",
+            "",
+            "> Fetching console logs...",
+            "",
+            "> ERROR: Module 'lodash' not found in package.json",
+            "> HINT: Check dependency configuration.",
+            "",
+            "> Re-running pipeline...",
+            "",
+            "> Stage: Checkout",
+            "✔ Repository cloned",
+            "",
+            "> Stage: Install Dependencies",
+            "✖ ERROR: Module 'lodash' not found in package.json",
+            "Build aborted. Install lodash from Config Terminal and retry.",
+            "",
+            "> Re-running pipeline...",
+            "",
+            "> Stage: Checkout",
+            "✔ Repository cloned",
+            "",
+            "> Stage: Install Dependencies",
+            "✔ lodash installed successfully",
+            "",
+            "> Stage: Build",
+            "✔ Build completed",
+            "",
+            "> Stage: Test",
+            "Running unit tests...",
+            "",
+            "PASS  tests/cartTotalCalculation.test.js",
+            "  cart total calculation",
+            "    ✓ calculates total price correctly (5 ms)",
+            "",
+            "Test Suites: 1 passed, 1 total",
+            "Tests:       1 passed, 1 total",
+            "Time:        0.45 s",
+            "",
+            "✔ All unit tests passed",
+            "",
+            "✔ Unit tests passed successfully.",
+            "",
+            "Pipeline ready for deployment stage.",
+            "> Stage: Deploy",
+            "",
+            "[INFO] Starting application...",
+            "[INFO] Binding to port 8080...",
+            "",
+            "[ERROR] listen EADDRINUSE: address already in use 0.0.0.0:8080",
+            "[FATAL] Existing process blocking deployment.",
+            "",
+            "Deployment failed.",
+            "",
+            "> Re-running pipeline...",
+            "",
+            "> Stage: Checkout",
+            "✔ Repository cloned",
+            "",
+            "> Stage: Build",
+            "✔ Build completed",
+            "",
+            "> Stage: Test",
+            "✔ All tests passed",
+            "",
+            "> Stage: Deploy",
+            "[INFO] Starting application...",
+            "[INFO] Binding to port 8080...",
+            "",
+            "✔ Application deployed successfully",
+            "✔ Server running on port 8080",
+            "",
+            "CASE 001 SOLVED.",
+            "",
+            "The system has been successfully restored."
+          ],
+          "score": 500,
+          "completedAt": "2026-05-06T03:29:31.921Z",
+          "badge": "pipeline_restorer",
+          "objectives": [
+            {
+              "name": "Dependency Resolved",
+              "points": 100,
+              "flag": "standard"
+            },
+            {
+              "name": "Codebase Patched",
+              "points": 100,
+              "flag": "standard"
+            },
+            {
+              "name": "Port Conflict Cleared",
+              "points": 100,
+              "flag": "standard"
+            },
+            {
+              "name": "Pipeline Restored",
+              "points": 200,
+              "flag": "golden"
+            }
+          ]
+        },
+        {
+          "levelId": "level_3",
+          "status": "completed",
+          "logs": [
+            "Git Time Machine Attack neutralized"
+          ],
+          "score": 400,
+          "completedAt": "2026-05-06T03:49:19.327Z",
+          "badge": "history_guardian",
+          "objectives": [
+            {
+              "name": "Locate Hidden Malicious Commit",
+              "points": 100,
+              "flag": "standard"
+            },
+            {
+              "name": "Identify the Attacker",
+              "points": 100,
+              "flag": "standard"
+            },
+            {
+              "name": "Restore Repository Integrity",
+              "points": 200,
+              "flag": "golden"
+            }
+          ]
+        }
+      ],
+      "joinedAt": "2026-05-01T09:01:40.371Z",
+      "email": "www.satyam1002@gmail.com",
+      "password": "abc123"
     },
     {
       "id": "1777626556695",

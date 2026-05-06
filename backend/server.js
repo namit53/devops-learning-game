@@ -207,13 +207,14 @@ io.on('connection', (socket) => {
         # Actual Clues
         echo 'Welcome, Candidate 8472.' > /home/recruit/welcome_note.txt
         echo 'Your objective is to find the Agent Password hidden in this system.' >> /home/recruit/welcome_note.txt
-        echo 'Hint: A good agent always checks hidden configurations.' >> /home/recruit/welcome_note.txt
+        echo 'Hint: A good agent always checks hidden configurations. Use "base64 -d" on the payload.' >> /home/recruit/welcome_note.txt
+        echo 'Payload: ZGVsdGFTZWN1cmUK' >> /home/recruit/welcome_note.txt
         
         echo 'The password file is locked by the system administrator.' > /home/recruit/.config/dcib_vault/hint.txt
         echo 'You must modify its permissions to read it.' >> /home/recruit/.config/dcib_vault/hint.txt
-        echo 'Note: The payload is encoded in standard Base64.' >> /home/recruit/.config/dcib_vault/hint.txt
+        echo 'Note: The payload is ZGVsdGFTZWN1cmUK (Encoded in Base64).' >> /home/recruit/.config/dcib_vault/hint.txt
         
-        echo 'ZGVsdGFTZWN1cmU=' > /home/recruit/.config/dcib_vault/credentials.b64
+        echo 'ZGVsdGFTZWN1cmUK' > /home/recruit/.config/dcib_vault/credentials.b64
         chmod 000 /home/recruit/.config/dcib_vault/credentials.b64
         
         echo '#!/bin/bash' > /usr/local/bin/login
@@ -274,7 +275,7 @@ io.on('connection', (socket) => {
         exec bash --noprofile --norc
       `;
       dockerCmd.push('ubuntu:22.04', 'bash', '-c', setupScript);
-    } else if (data.levelId === 'level_1') {
+    } else if (data.levelId === 'level_2') {
       const setupScript = `
         echo '#!/bin/bash' > /usr/local/bin/npm
         echo 'if [ "$1" == "install" ] && [ "$2" == "lodash" ]; then' >> /usr/local/bin/npm
@@ -615,8 +616,10 @@ EOF
         for (let i = 0; i < input.length; i++) {
           const char = input[i];
           if (char === '\r' || char === '\n') {
+            if (buffer.length === 0 && char === '\n') continue; // Skip redundant LF in CRLF
             emit('\r\n');
-            const cmd = buffer.trim();
+            // Strip ANSI escape codes (e.g. arrow keys) and trim
+            const cmd = buffer.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '').trim();
             buffer = '';
             
             if (inSubShell) {
@@ -651,12 +654,16 @@ EOF
                 emit('c7d8e9f0a1b2   nginx:alpine          "/docker-entrypoint…"   5 days ago      Up 5 days      80/tcp    reverse-proxy\r\n\r\n');
                 emit('__OBJ_1_COMPLETED__\r\n');
               } else if (cmd.includes('docker exec')) {
-                if (cmd.includes('a1b2c3d4e5f6') || cmd.includes('api-worker-compromised')) {
+                const parts = cmd.split(' ');
+                const containerId = parts.find(p => p === 'a1b2c3d4e5f6' || p === 'api-worker-compromised');
+                if (containerId) {
                   inSubShell = true;
                   currentPrompt = 'api-worker:/usr/src/app # ';
                   emit('Successfully attached to api-worker-compromised.\r\n');
                 } else {
-                  emit('Error: No such container: ' + cmd.split(' ').pop() + '\r\n');
+                  // Fallback to last non-option argument if possible
+                  const target = parts.filter(p => !p.startsWith('-')).slice(2, 3)[0] || 'unknown';
+                  emit(`Error: No such container: ${target}\r\n`);
                 }
               } else if (cmd.startsWith('docker build')) {
                 emit('Sending build context to Docker daemon  12.5kB\r\n');
@@ -685,6 +692,7 @@ EOF
           }
         }
       });
+      return;
     } else if (data.levelId === 'level_5') {
       let currentPrompt = 'root@dcib-sre:~# ';
       let buffer = '';
@@ -743,6 +751,7 @@ EOF
           }
         }
       });
+      return;
     } else if (data.levelId === 'level_6') {
       let currentPrompt = 'root@dcib-iac:~# ';
       let buffer = '';
@@ -797,6 +806,7 @@ EOF
           }
         }
       });
+      return;
     } else if (data.levelId === 'level_7') {
       let currentPrompt = 'root@dcib-k8s:~# ';
       let buffer = '';

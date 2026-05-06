@@ -1,3 +1,8 @@
+// Initialize Reward System
+if (window.RewardSystem) {
+  window.RewardSystem.init();
+}
+
 // Cinematic Intro Handler
 (function() {
   const cinematicIntro = document.getElementById('cinematicIntro');
@@ -82,7 +87,8 @@ editCodeBtn.addEventListener('click', () => {
 
 function isBaseImageFixed() {
   const dockerfile = state.dockerfile.toLowerCase();
-  return dockerfile.includes('from alpine') || dockerfile.includes('from node:slim');
+  // More flexible check for safe base images
+  return dockerfile.includes('alpine') || dockerfile.includes('slim') || dockerfile.includes('distroless');
 }
 
 saveCodeBtn.addEventListener('click', () => {
@@ -96,7 +102,11 @@ saveCodeBtn.addEventListener('click', () => {
   saveCodeMessage.hidden = false;
 
   if (isBaseImageFixed()) {
-    document.getElementById('obj-fix').classList.add('completed');
+    const el = document.getElementById('obj-fix');
+    if (el && !el.classList.contains('completed')) {
+      el.classList.add('completed');
+      if (window.RewardSystem) window.RewardSystem.showFlag('Image Configuration Fixed', 100);
+    }
   }
 });
 
@@ -128,7 +138,7 @@ function initializeTerminal() {
   term.open(container);
   fitAddon.fit();
 
-  socket = io('http://localhost:3000');
+  socket = io(window.location.origin);
 
   socket.on('connect', () => {
     socket.emit('start_lab', { levelId: 'level_4', cols: term.cols, rows: term.rows });
@@ -136,19 +146,35 @@ function initializeTerminal() {
 
   socket.on('terminal_output', (data) => {
     if (data.includes('__OBJ_1_COMPLETED__')) {
-      document.getElementById('obj-audit').classList.add('completed');
+      const el = document.getElementById('obj-audit');
+      if (el && !el.classList.contains('completed')) {
+        el.classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Container Audit Performed', 100);
+      }
       data = data.replace('__OBJ_1_COMPLETED__', '');
     }
     if (data.includes('__OBJ_2_COMPLETED__')) {
-      document.getElementById('obj-inspect').classList.add('completed');
+      const el = document.getElementById('obj-inspect');
+      if (el && !el.classList.contains('completed')) {
+        el.classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Malicious Worker Identified', 100);
+      }
       data = data.replace('__OBJ_2_COMPLETED__', '');
     }
     if (data.includes('__OBJ_4_COMPLETED__')) {
-      document.getElementById('obj-build').classList.add('completed');
+      const el = document.getElementById('obj-build');
+      if (el && !el.classList.contains('completed')) {
+        el.classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Clean Image Rebuilt', 100);
+      }
       data = data.replace('__OBJ_4_COMPLETED__', '');
     }
     if (data.includes('__OBJ_5_COMPLETED__')) {
-      document.getElementById('obj-clear').classList.add('completed');
+      const el = document.getElementById('obj-clear');
+      if (el && !el.classList.contains('completed')) {
+        el.classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Insecure Resources Purged', 100);
+      }
       data = data.replace('__OBJ_5_COMPLETED__', '');
     }
     term.write(data);
@@ -178,10 +204,13 @@ evaluateBtn.addEventListener('click', () => {
     statusValue.classList.remove('status-failed');
     statusValue.classList.add('status-success');
     resolveMessage.hidden = false;
+    
+    if (window.RewardSystem) window.RewardSystem.showFlag('Container Infiltration Resolved', 200, true);
 
+    const totalScore = window.RewardSystem ? window.RewardSystem.getScore() : 100;
     const username = localStorage.getItem('devops_player_username') || 'shadow_dev';
 
-    fetch(`http://localhost:3000/api/players/${username}/progress`, {
+    fetch(`${window.location.origin}/api/players/${username}/progress`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -189,7 +218,9 @@ evaluateBtn.addEventListener('click', () => {
       body: JSON.stringify({
         levelId: 'level_4',
         status: 'completed',
-        score: 100
+        score: totalScore,
+        badge: 'container_breaker',
+        objectives: window.RewardSystem ? window.RewardSystem.getObjectives() : []
       })
     })
     .then(res => res.json())
@@ -197,8 +228,14 @@ evaluateBtn.addEventListener('click', () => {
     .catch(err => console.error('Failed to save progress:', err))
     .finally(() => {
       setTimeout(() => {
-        window.location.href = 'level5.html';
-      }, 2500);
+        if (window.RewardSystem) {
+          window.RewardSystem.showLevelComplete('level_4', 'Container Infiltration', totalScore, () => {
+            window.location.href = 'level5.html';
+          });
+        } else {
+          window.location.href = 'level5.html';
+        }
+      }, 1500);
     });
   } else {
     alert('Please complete all objectives first before finishing Level 4.');

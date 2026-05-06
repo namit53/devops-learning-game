@@ -1,3 +1,8 @@
+// Initialize Reward System
+if (window.RewardSystem) {
+  window.RewardSystem.init();
+}
+
 // Cinematic Intro Handler
 (function() {
   const cinematicIntro = document.getElementById('cinematicIntro');
@@ -92,7 +97,11 @@ function openFile(fileName) {
   backendTfBtn.classList.toggle('primary', fileName === 'backend.tf');
 
   if (fileName === 'main.tf') {
-    document.getElementById('obj-identify').classList.add('completed');
+    const el = document.getElementById('obj-identify');
+    if (el && !el.classList.contains('completed')) {
+      el.classList.add('completed');
+      if (window.RewardSystem) window.RewardSystem.showFlag('Insecure Rules Identified', 100);
+    }
   }
 }
 
@@ -121,11 +130,19 @@ saveCodeBtn.addEventListener('click', () => {
 
   // Validate Objectives
   if (state.activeFile === 'main.tf' && !state.files['main.tf'].includes('0.0.0.0/0')) {
-    document.getElementById('obj-restrict').classList.add('completed');
+    const el = document.getElementById('obj-restrict');
+    if (el && !el.classList.contains('completed')) {
+      el.classList.add('completed');
+      if (window.RewardSystem) window.RewardSystem.showFlag('Network Rules Restricted', 100);
+    }
   }
 
   if (state.activeFile === 'backend.tf' && state.files['backend.tf'].includes('dynamodb_table')) {
-    document.getElementById('obj-lock').classList.add('completed');
+    const el = document.getElementById('obj-lock');
+    if (el && !el.classList.contains('completed')) {
+      el.classList.add('completed');
+      if (window.RewardSystem) window.RewardSystem.showFlag('State Locking Implemented', 100);
+    }
   }
 });
 
@@ -157,7 +174,7 @@ function initializeTerminal() {
   term.open(container);
   fitAddon.fit();
 
-  socket = io('http://localhost:3000');
+  socket = io(window.location.origin);
 
   socket.on('connect', () => {
     socket.emit('start_lab', { levelId: 'level_6', cols: term.cols, rows: term.rows });
@@ -165,11 +182,19 @@ function initializeTerminal() {
 
   socket.on('terminal_output', (data) => {
     if (data.includes('__OBJ_L6_1__')) {
-      document.getElementById('obj-validate').classList.add('completed');
+      const el = document.getElementById('obj-validate');
+      if (el && !el.classList.contains('completed')) {
+        el.classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Code Validation Passed', 100);
+      }
       data = data.replace('__OBJ_L6_1__', '');
     }
     if (data.includes('__OBJ_L6_4__')) {
-      document.getElementById('obj-apply').classList.add('completed');
+      const el = document.getElementById('obj-apply');
+      if (el && !el.classList.contains('completed')) {
+        el.classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Desired State Applied', 100);
+      }
       data = data.replace('__OBJ_L6_4__', '');
     }
     term.write(data);
@@ -200,9 +225,12 @@ evaluateBtn.addEventListener('click', () => {
     statusValue.classList.add('status-success');
     resolveMessage.hidden = false;
 
+    if (window.RewardSystem) window.RewardSystem.showFlag('Infrastructure Restored', 200, true);
+
+    const totalScore = window.RewardSystem ? window.RewardSystem.getScore() : 100;
     const username = localStorage.getItem('devops_player_username') || 'shadow_dev';
 
-    fetch(`http://localhost:3000/api/players/${username}/progress`, {
+    fetch(`${window.location.origin}/api/players/${username}/progress`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -210,7 +238,9 @@ evaluateBtn.addEventListener('click', () => {
       body: JSON.stringify({
         levelId: 'level_6',
         status: 'completed',
-        score: 100
+        score: totalScore,
+        badge: 'infra_architect',
+        objectives: window.RewardSystem ? window.RewardSystem.getObjectives() : []
       })
     })
     .then(res => res.json())
@@ -218,8 +248,14 @@ evaluateBtn.addEventListener('click', () => {
     .catch(err => console.error('Failed to save progress:', err))
     .finally(() => {
       setTimeout(() => {
-        window.location.href = 'level7.html';
-      }, 2500);
+        if (window.RewardSystem) {
+          window.RewardSystem.showLevelComplete('level_6', 'Infrastructure as Code', totalScore, () => {
+            window.location.href = 'level7.html';
+          });
+        } else {
+          window.location.href = 'level7.html';
+        }
+      }, 1500);
     });
   } else {
     alert('Please complete all objectives first before finishing Level 6.');

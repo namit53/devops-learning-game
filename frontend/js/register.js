@@ -33,11 +33,11 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     btn.textContent = 'CONNECTING...';
     errorMsg.textContent = '';
     
-    let url = 'http://localhost:3000/api/players/register';
+    let url = `${window.location.origin}/api/players/register`;
     let body = { username, email, password, age, gender };
 
     if (isLoginMode) {
-      url = 'http://localhost:3000/api/players/login';
+      url = `${window.location.origin}/api/players/login`;
       body = { email, password };
     }
 
@@ -57,6 +57,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     const data = await response.json();
     
     // Save both the username and email to local storage
+
     localStorage.setItem('devops_player_username', data.player.username);
     localStorage.setItem('devops_player_email', data.player.email);
     
