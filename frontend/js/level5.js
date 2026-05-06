@@ -1,3 +1,8 @@
+// Initialize Reward System
+if (window.RewardSystem) {
+  window.RewardSystem.init();
+}
+
 // Cinematic Intro Handler
 (function() {
   const cinematicIntro = document.getElementById('cinematicIntro');
@@ -116,11 +121,19 @@ saveCodeBtn.addEventListener('click', () => {
 
   // Validate Objectives
   if (state.activeFile === 'server.js' && state.files['server.js'].toLowerCase().includes('/health')) {
-    document.getElementById('obj-health').classList.add('completed');
+    const el = document.getElementById('obj-health');
+    if (el && !el.classList.contains('completed')) {
+      el.classList.add('completed');
+      if (window.RewardSystem) window.RewardSystem.showFlag('Health Endpoint Implemented', 100);
+    }
   }
 
   if (state.activeFile === 'alert-config.js' && (state.files['alert-config.js'].includes('85') || state.files['alert-config.js'].includes('> 85'))) {
-    document.getElementById('obj-alert').classList.add('completed');
+    const el = document.getElementById('obj-alert');
+    if (el && !el.classList.contains('completed')) {
+      el.classList.add('completed');
+      if (window.RewardSystem) window.RewardSystem.showFlag('Alert Thresholds Configured', 100);
+    }
   }
 });
 
@@ -152,7 +165,7 @@ function initializeTerminal() {
   term.open(container);
   fitAddon.fit();
 
-  socket = io('http://localhost:3000');
+  socket = io(window.location.origin);
 
   socket.on('connect', () => {
     socket.emit('start_lab', { levelId: 'level_5', cols: term.cols, rows: term.rows });
@@ -160,15 +173,27 @@ function initializeTerminal() {
 
   socket.on('terminal_output', (data) => {
     if (data.includes('__OBJ_L5_1__')) {
-      document.getElementById('obj-triage').classList.add('completed');
+      const el = document.getElementById('obj-triage');
+      if (el && !el.classList.contains('completed')) {
+        el.classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Active Leak Triaged', 100);
+      }
       data = data.replace('__OBJ_L5_1__', '');
     }
     if (data.includes('__OBJ_L5_2__')) {
-      document.getElementById('obj-terminate').classList.add('completed');
+      const el = document.getElementById('obj-terminate');
+      if (el && !el.classList.contains('completed')) {
+        el.classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Runaway Worker Terminated', 100);
+      }
       data = data.replace('__OBJ_L5_2__', '');
     }
     if (data.includes('__OBJ_L5_5__')) {
-      document.getElementById('obj-load').classList.add('completed');
+      const el = document.getElementById('obj-load');
+      if (el && !el.classList.contains('completed')) {
+        el.classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Load Resilience Verified', 100);
+      }
       data = data.replace('__OBJ_L5_5__', '');
     }
     term.write(data);
@@ -199,9 +224,12 @@ evaluateBtn.addEventListener('click', () => {
     statusValue.classList.add('status-success');
     resolveMessage.hidden = false;
 
+    if (window.RewardSystem) window.RewardSystem.showFlag('SRE Incident Resolved', 200, true);
+
+    const totalScore = window.RewardSystem ? window.RewardSystem.getScore() : 100;
     const username = localStorage.getItem('devops_player_username') || 'shadow_dev';
 
-    fetch(`http://localhost:3000/api/players/${username}/progress`, {
+    fetch(`${window.location.origin}/api/players/${username}/progress`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -209,7 +237,9 @@ evaluateBtn.addEventListener('click', () => {
       body: JSON.stringify({
         levelId: 'level_5',
         status: 'completed',
-        score: 100
+        score: totalScore,
+        badge: 'alert_sentinel',
+        objectives: window.RewardSystem ? window.RewardSystem.getObjectives() : []
       })
     })
     .then(res => res.json())
@@ -217,8 +247,14 @@ evaluateBtn.addEventListener('click', () => {
     .catch(err => console.error('Failed to save progress:', err))
     .finally(() => {
       setTimeout(() => {
-        window.location.href = 'level6.html';
-      }, 2500);
+        if (window.RewardSystem) {
+          window.RewardSystem.showLevelComplete('level_5', 'Monitoring & Alerting', totalScore, () => {
+            window.location.href = 'level6.html';
+          });
+        } else {
+          window.location.href = 'level6.html';
+        }
+      }, 1500);
     });
   } else {
     alert('Please complete all objectives first before finishing Level 5.');

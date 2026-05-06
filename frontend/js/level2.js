@@ -581,11 +581,11 @@ document.getElementById('configBtn').addEventListener('click', () => {
       fitAddon.fit();
       
       // Connect WebSocket
-      socket = io('http://localhost:3000');
+      socket = io(window.location.origin);
       
       socket.on('connect', () => {
         term.writeln('Connected to lab environment.');
-        socket.emit('start_lab', { levelId: 'level_1', cols: term.cols, rows: term.rows });
+        socket.emit('start_lab', { levelId: 'level_2', cols: term.cols, rows: term.rows });
       });
       
       socket.on('terminal_output', (data) => {
@@ -657,13 +657,13 @@ function completeCase() {
   const totalScore = window.RewardSystem ? window.RewardSystem.getScore() : 100;
   const username = localStorage.getItem('devops_player_username') || 'shadow_dev';
   
-  fetch(`http://localhost:3000/api/players/${username}/progress`, {
+  fetch(`${window.location.origin}/api/players/${username}/progress`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      levelId: 'level_1',
+      levelId: 'level_2',
       status: 'completed',
       score: totalScore,
       badge: 'pipeline_restorer',

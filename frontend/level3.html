@@ -6,6 +6,7 @@
     <title>DCIB Case 002 - Git Time Machine Attack</title>
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/assistant.css" />
+    <link rel="stylesheet" href="css/level2_intro.css" />
     <link rel="stylesheet" href="css/rewards.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <style>
@@ -96,7 +97,27 @@
       }
     </style>
   </head>
-  <body>
+  <body class="level1-page">
+    <!-- Cinematic Intro -->
+    <div id="cinematicIntro" class="cinematic-overlay">
+      <div class="red-flash"></div>
+      <span class="alert-text">⚠ DATA PERSISTENCE ATTACK DETECTED ⚠</span>
+      <div class="l2-crawl-fade"></div>
+      <div class="l2-crawl-perspective">
+        <div class="l2-crawl-content" id="l2CrawlContent">
+          <div class="crawl-episode">
+            <p>Chapter 3</p>
+            <h1>GIT TIME MACHINE</h1>
+          </div>
+          <p>The Chaos Syndicate has evolved. They are no longer just breaking the present; they are poisoning the past.</p>
+          <p>Our scanners have identified a "clean" production branch, yet malicious payloads continue to surface in our preview environments. They are hiding within the shadows of our version history.</p>
+          <p>They have used advanced Git manipulation to bury malicious scripts in old commits, hoping we wouldn't look back.</p>
+          <p>Agent, your objective is to travel through the repository's history, locate the infected commits, identify the attacker, and rewrite the timeline to ensure a secure future.</p>
+        </div>
+      </div>
+      <button id="skipL2CrawlBtn" class="l2-skip-btn">SKIP [ESC]</button>
+    </div>
+
     <div class="background-code" aria-hidden="true"></div>
 
     <div class="layout-container" style="z-index: 1; position: relative;">

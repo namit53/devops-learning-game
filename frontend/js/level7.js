@@ -1,3 +1,8 @@
+// Initialize Reward System
+if (window.RewardSystem) {
+  window.RewardSystem.init();
+}
+
 // Cinematic Intro Handler
 (function() {
   const cinematicIntro = document.getElementById('cinematicIntro');
@@ -109,11 +114,19 @@ saveCodeBtn.addEventListener('click', () => {
   // Validate Objectives
   const yaml = state.files['config.yaml'].toLowerCase();
   if (!yaml.includes('null_invalid') && (yaml.includes('db_host: db') || yaml.includes('db-prod'))) {
-    document.getElementById('obj-config').classList.add('completed');
+    const el = document.getElementById('obj-config');
+    if (el && !el.classList.contains('completed')) {
+      el.classList.add('completed');
+      if (window.RewardSystem) window.RewardSystem.showFlag('ConfigMap Values Corrected', 100);
+    }
   }
 
   if (yaml.includes('livenessprobe') && yaml.includes('readinessprobe')) {
-    document.getElementById('obj-probes').classList.add('completed');
+    const el = document.getElementById('obj-probes');
+    if (el && !el.classList.contains('completed')) {
+      el.classList.add('completed');
+      if (window.RewardSystem) window.RewardSystem.showFlag('Health Probes Defined', 100);
+    }
   }
 });
 
@@ -145,7 +158,7 @@ function initializeTerminal() {
   term.open(container);
   fitAddon.fit();
 
-  socket = io('http://localhost:3000');
+  socket = io(window.location.origin);
 
   socket.on('connect', () => {
     socket.emit('start_lab', { levelId: 'level_7', cols: term.cols, rows: term.rows });
@@ -153,15 +166,27 @@ function initializeTerminal() {
 
   socket.on('terminal_output', (data) => {
     if (data.includes('__OBJ_L7_1__')) {
-      document.getElementById('obj-locate').classList.add('completed');
+      const el = document.getElementById('obj-locate');
+      if (el && !el.classList.contains('completed')) {
+        el.classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Failing Pods Located', 100);
+      }
       data = data.replace('__OBJ_L7_1__', '');
     }
     if (data.includes('__OBJ_L7_2__')) {
-      document.getElementById('obj-diagnostics').classList.add('completed');
+      const el = document.getElementById('obj-diagnostics');
+      if (el && !el.classList.contains('completed')) {
+        el.classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Pod Diagnostics Extracted', 100);
+      }
       data = data.replace('__OBJ_L7_2__', '');
     }
     if (data.includes('__OBJ_L7_4__')) {
-      document.getElementById('obj-deploy').classList.add('completed');
+      const el = document.getElementById('obj-deploy');
+      if (el && !el.classList.contains('completed')) {
+        el.classList.add('completed');
+        if (window.RewardSystem) window.RewardSystem.showFlag('Valid State Deployed', 100);
+      }
       data = data.replace('__OBJ_L7_4__', '');
     }
     term.write(data);
@@ -190,11 +215,12 @@ evaluateBtn.addEventListener('click', () => {
     statusValue.textContent = 'SYSTEM SECURED';
     statusValue.classList.remove('status-failed');
     statusValue.classList.add('status-success');
-    resolveMessage.hidden = false;
+    if (window.RewardSystem) window.RewardSystem.showFlag('Orchestration Integrity Restored', 200, true);
 
+    const totalScore = window.RewardSystem ? window.RewardSystem.getScore() : 100;
     const username = localStorage.getItem('devops_player_username') || 'shadow_dev';
 
-    fetch(`http://localhost:3000/api/players/${username}/progress`, {
+    fetch(`${window.location.origin}/api/players/${username}/progress`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -202,7 +228,9 @@ evaluateBtn.addEventListener('click', () => {
       body: JSON.stringify({
         levelId: 'level_7',
         status: 'completed',
-        score: 100
+        score: totalScore,
+        badge: 'orchestration_master',
+        objectives: window.RewardSystem ? window.RewardSystem.getObjectives() : []
       })
     })
     .then(res => res.json())
@@ -210,8 +238,14 @@ evaluateBtn.addEventListener('click', () => {
     .catch(err => console.error('Failed to save progress:', err))
     .finally(() => {
       setTimeout(() => {
-        window.location.href = 'level1.html';
-      }, 2500);
+        if (window.RewardSystem) {
+          window.RewardSystem.showLevelComplete('level_7', 'Orchestration Meltdown', totalScore, () => {
+            window.location.href = 'dashboard.html';
+          });
+        } else {
+          window.location.href = 'dashboard.html';
+        }
+      }, 1500);
     });
   } else {
     alert('Please complete all objectives first before finishing Level 7.');

@@ -16,6 +16,29 @@ if (window.RewardSystem) {
   window.RewardSystem.init();
 }
 
+// Cinematic Intro Handler
+(function() {
+  const cinematicIntro = document.getElementById('cinematicIntro');
+  const skipBtn = document.getElementById('skipL2CrawlBtn');
+  const crawlContent = document.getElementById('l2CrawlContent');
+
+  const dismissCinematic = () => {
+    if (cinematicIntro) {
+      cinematicIntro.style.transition = 'opacity 0.8s ease';
+      cinematicIntro.style.opacity = '0';
+      setTimeout(() => { cinematicIntro.style.display = 'none'; }, 800);
+    }
+  };
+
+  if (skipBtn) skipBtn.addEventListener('click', dismissCinematic);
+  if (crawlContent) crawlContent.addEventListener('animationend', dismissCinematic);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && cinematicIntro && cinematicIntro.style.display !== 'none') {
+      dismissCinematic();
+    }
+  });
+})();
+
 const hints = {
   1: "Try clicking the 'Run DCIB Scan' button to see what we're dealing with.",
   3: "The current tree is clean. Maybe an old script is calling an old commit? Try searching the codebase for git commands: `git grep \"git checkout\"`",
@@ -131,7 +154,7 @@ function initTerminal() {
   setTimeout(() => {
     fitAddon.fit();
     
-    socket = io('http://localhost:3000');
+    socket = io(window.location.origin);
     
     socket.on('connect', () => {
       socket.emit('start_lab', { levelId: 'level_3', cols: term.cols, rows: term.rows });
@@ -248,7 +271,7 @@ function saveProgressAndComplete() {
   const totalScore = window.RewardSystem ? window.RewardSystem.getScore() : 100;
   const username = localStorage.getItem('devops_player_username') || 'shadow_dev';
   
-  fetch(`http://localhost:3000/api/players/${username}/progress`, {
+  fetch(`${window.location.origin}/api/players/${username}/progress`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -269,7 +292,7 @@ function saveProgressAndComplete() {
     setTimeout(() => {
       if (window.RewardSystem) {
         window.RewardSystem.showLevelComplete('level_3', 'Git Time Machine', totalScore, () => {
-          window.location.href = 'dashboard.html';
+          window.location.href = 'level4.html';
         });
       } else {
         document.getElementById('successOverlay').style.display = 'flex';

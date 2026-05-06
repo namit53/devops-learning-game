@@ -1,5 +1,10 @@
-let term = null;
-let socket = null;
+// Initialize Reward System
+if (window.RewardSystem) {
+  window.RewardSystem.init();
+}
+
+let term;
+let socket;
 
 window.addEventListener('DOMContentLoaded', () => {
   const introCrawl = document.getElementById('introCrawl');
@@ -45,21 +50,38 @@ window.addEventListener('DOMContentLoaded', () => {
     fitAddon.fit();
     
     // Connect WebSocket
-    socket = io('http://localhost:3000');
+    socket = io(window.location.origin);
 
     socket.on('connect', () => {
       socket.emit('start_lab', { levelId: 'recruitment', cols: term.cols, rows: term.rows });
     });
 
     let outputBuffer = "";
+    const state = {
+      identityFlag: false,
+      vaultFlag: false,
+      encryptionFlag: false,
+      clearanceFlag: false,
+      completed: false
+    };
 
     socket.on('terminal_output', (data) => {
       // Don't render the magic string to the user
       if (data.includes('__REDIRECT_TO_LEVEL_2__')) {
+        if (state.completed) return;
+        state.completed = true;
+
+        // Ensure last objective is ticked
         const objClearance = document.getElementById('obj-clearance');
-        if (objClearance) objClearance.classList.add('completed');
+        if (objClearance && !objClearance.classList.contains('completed')) {
+          objClearance.classList.add('completed');
+        }
         
+        if (window.RewardSystem) window.RewardSystem.showFlag('Clearance Granted', 200, true);
+
+        const totalScore = window.RewardSystem ? window.RewardSystem.getScore() : 100;
         const username = localStorage.getItem('devops_player_username') || 'shadow_dev';
+        
         fetch(`http://localhost:3000/api/players/${username}/progress`, {
           method: 'POST',
           headers: {
@@ -68,30 +90,76 @@ window.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({
             levelId: 'level_1',
             status: 'completed',
-            score: 100
+            score: totalScore,
+            badge: 'recruitment_cleared',
+            objectives: window.RewardSystem ? window.RewardSystem.getObjectives() : []
           })
         }).catch(err => console.error(err));
 
         setTimeout(() => {
-          window.location.href = 'level2.html';
-        }, 1000);
+          if (window.RewardSystem) {
+            window.RewardSystem.showLevelComplete('level_1', 'Recruitment Screening', totalScore, () => {
+              window.location.href = 'level2.html';
+            });
+          } else {
+            window.location.href = 'level2.html';
+          }
+        }, 1500);
         return; // Skip writing this chunk
       }
       
       term.write(data);
       
       outputBuffer += data;
+      
+      // Objective: Identity Confirmed
       if (outputBuffer.includes('Candidate 8472')) {
         const el = document.getElementById('obj-identity');
-        if (el) el.classList.add('completed');
+        if (el && !el.classList.contains('completed')) {
+          el.classList.add('completed');
+          if (window.RewardSystem && !state.identityFlag) {
+            window.RewardSystem.showFlag('Identity Confirmed', 100);
+            state.identityFlag = true;
+          }
+        }
       }
-      if (outputBuffer.includes('dcib_vault') || outputBuffer.includes('.config')) {
+      
+      // Objective: Vault Discovered (Triggered by entering the directory)
+      if (outputBuffer.includes('.config/dcib_vault')) {
         const el = document.getElementById('obj-vault');
-        if (el) el.classList.add('completed');
+        if (el && !el.classList.contains('completed')) {
+          el.classList.add('completed');
+          if (window.RewardSystem && !state.vaultFlag) {
+            window.RewardSystem.showFlag('Vault Discovered', 100);
+            state.vaultFlag = true;
+          }
+        }
       }
+      
+      // Objective: Encryption Bypassed
       if (outputBuffer.includes('ZGVsdGFTZWN1cmU=')) {
         const el = document.getElementById('obj-encryption');
-        if (el) el.classList.add('completed');
+        if (el && !el.classList.contains('completed')) {
+          el.classList.add('completed');
+          if (window.RewardSystem && !state.encryptionFlag) {
+            window.RewardSystem.showFlag('Encryption Bypassed', 100);
+            state.encryptionFlag = true;
+          }
+        }
+      }
+
+      // Objective: Clearance Granted (Triggered by successful login)
+      // Objective: Clearance Granted (Triggered by successful login)
+      if (outputBuffer.includes('Authentication successful.')) {
+        const el = document.getElementById('obj-clearance');
+        if (el && !el.classList.contains('completed')) {
+          el.classList.add('completed');
+          // Final objective points
+          if (window.RewardSystem && !state.clearanceFlag) {
+            window.RewardSystem.showFlag('Clearance Granted', 100);
+            state.clearanceFlag = true;
+          }
+        }
       }
       
       if (outputBuffer.length > 5000) {
